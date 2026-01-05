@@ -48,14 +48,14 @@ const ICON_VARIANTS = {
       x: 0,
       y: 0,
       rotate: -6,
-      transition: { duration: 0.5, delay: 0.1, ease: "easeOut" }
+      transition: { duration: 0.5, delay: 0.1 }
     },
     hover: {
       x: -20,
       y: -8,
       rotate: -12,
       scale: 1.05,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3 }
     }
   },
   center: {
@@ -63,12 +63,12 @@ const ICON_VARIANTS = {
     animate: {
       scale: 1,
       opacity: 1,
-      transition: { duration: 0.5, delay: 0.2, ease: "easeOut" }
+      transition: { duration: 0.5, delay: 0.2 }
     },
     hover: {
       y: -12,
       scale: 1.1,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3 }
     }
   },
   right: {
@@ -79,14 +79,14 @@ const ICON_VARIANTS = {
       x: 0,
       y: 0,
       rotate: 6,
-      transition: { duration: 0.5, delay: 0.3, ease: "easeOut" }
+      transition: { duration: 0.5, delay: 0.3 }
     },
     hover: {
       x: 20,
       y: -8,
       rotate: 12,
       scale: 1.05,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3 }
     }
   }
 };
@@ -101,14 +101,14 @@ const ICON_VARIANTS_MODERN = {
       x: -20,
       y: -8,
       rotate: -12,
-      transition: { duration: 0.5, delay: 0.1, ease: "easeOut" }
+      transition: { duration: 0.5, delay: 0.1 }
     },
     hover: {
       scale: 1.05,
       x: -20,
       y: -8,
       rotate: -12,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3 }
     }
   },
   center: {
@@ -117,12 +117,12 @@ const ICON_VARIANTS_MODERN = {
       scale: 1.1,
       opacity: 1,
       y: -12,
-      transition: { duration: 0.5, delay: 0.2, ease: "easeOut" }
+      transition: { duration: 0.5, delay: 0.2 }
     },
     hover: {
       scale: 1.1,
       y: -12,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3 }
     }
   },
   right: {
@@ -133,14 +133,14 @@ const ICON_VARIANTS_MODERN = {
       x: 20,
       y: -8,
       rotate: 12,
-      transition: { duration: 0.5, delay: 0.3, ease: "easeOut" }
+      transition: { duration: 0.5, delay: 0.3 }
     },
     hover: {
       scale: 1.05,
       x: 20,
       y: -8,
       rotate: 12,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3 }
     }
   }
 };
@@ -150,7 +150,7 @@ const CONTENT_VARIANTS = {
   animate: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.5, delay: 0.4, ease: "easeOut" }
+    transition: { duration: 0.5, delay: 0.4 }
   },
 };
 

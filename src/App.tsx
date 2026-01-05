@@ -94,7 +94,7 @@ interface ProjectFormData {
   detailedDescription: string;
   screenshots: string;  // 逗号分隔的 URL
   features: string;     // 逗号分隔
-  challenges: string;   // 逗号分隔
+  challenges: string;   // JSON 字符串
 
   // 时间线字段
   startDate: string;
@@ -645,6 +645,7 @@ const ProjectNavigationWebsite: React.FC = () => {
 
     // 将时间线数据转换为 JSON 字符串
     const timelineJson = project.timeline ? JSON.stringify(project.timeline, null, 2) : '';
+    const challengesJson = project.challenges ? JSON.stringify(project.challenges, null, 2) : '';
 
     setFormData({
       title: project.title,
@@ -658,7 +659,7 @@ const ProjectNavigationWebsite: React.FC = () => {
       detailedDescription: project.detailedDescription || '',
       screenshots: project.screenshots?.join(', ') || '',
       features: project.features?.join(', ') || '',
-      challenges: project.challenges?.join(', ') || '',
+      challenges: challengesJson,
       startDate: project.startDate || '',
       duration: project.duration || '',
       timelineData: timelineJson,
@@ -675,7 +676,6 @@ const ProjectNavigationWebsite: React.FC = () => {
     const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
     const screenshotsArray = formData.screenshots.split(',').map(url => url.trim()).filter(url => url);
     const featuresArray = formData.features.split(',').map(f => f.trim()).filter(f => f);
-    const challengesArray = formData.challenges.split(',').map(c => c.trim()).filter(c => c);
 
     // 解析时间线 JSON
     let timelineArray: TimelineEvent[] | undefined;
@@ -684,6 +684,17 @@ const ProjectNavigationWebsite: React.FC = () => {
         timelineArray = JSON.parse(formData.timelineData);
       } catch (e) {
         alert('时间线数据格式错误，请检查 JSON 格式');
+        return;
+      }
+    }
+
+    // 解析挑战 JSON
+    let challengesArray: Challenge[] | undefined;
+    if (formData.challenges.trim()) {
+      try {
+        challengesArray = JSON.parse(formData.challenges);
+      } catch (e) {
+        alert('挑战数据格式错误，请检查 JSON 格式');
         return;
       }
     }
@@ -705,7 +716,7 @@ const ProjectNavigationWebsite: React.FC = () => {
               detailedDescription: formData.detailedDescription || undefined,
               screenshots: screenshotsArray.length > 0 ? screenshotsArray : undefined,
               features: featuresArray.length > 0 ? featuresArray : undefined,
-              challenges: challengesArray.length > 0 ? challengesArray : undefined,
+              challenges: challengesArray,
               startDate: formData.startDate || undefined,
               duration: formData.duration || undefined,
               timeline: timelineArray,
@@ -727,7 +738,7 @@ const ProjectNavigationWebsite: React.FC = () => {
         detailedDescription: formData.detailedDescription || undefined,
         screenshots: screenshotsArray.length > 0 ? screenshotsArray : undefined,
         features: featuresArray.length > 0 ? featuresArray : undefined,
-        challenges: challengesArray.length > 0 ? challengesArray : undefined,
+        challenges: challengesArray,
         startDate: formData.startDate || undefined,
         duration: formData.duration || undefined,
         timeline: timelineArray,
