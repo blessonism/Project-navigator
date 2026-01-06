@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ExternalLink, Github, Search, Globe, Code2, Rocket, Filter, Image as ImageIcon, Plus, Pencil, Trash2, Save, X, ArrowLeft, Eye, EyeOff, LogOut, Info } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -109,6 +110,7 @@ const ProjectNavigationWebsite: React.FC = () => {
   const { toast } = useToast();
   const [isInitialized, setIsInitialized] = useState(false);
   const hasImageSettingToast = useRef(false);
+  const initialProjects = useMemo(() => getLocalProjectsSnapshot(), []);
 
   const defaultProjects: Project[] = [
     {
@@ -493,10 +495,10 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
   ];
 
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const localProjects = getLocalProjectsSnapshot();
-    return localProjects.length > 0 ? localProjects : defaultProjects;
-  });
+  const [projects, setProjects] = useState<Project[]>(() => (
+    initialProjects.length > 0 ? initialProjects : []
+  ));
+  const [isProjectsLoading, setIsProjectsLoading] = useState(initialProjects.length === 0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showImages, setShowImages] = useState(() => getLocalSettingsSnapshot().showImages);
@@ -573,6 +575,7 @@ const ProjectNavigationWebsite: React.FC = () => {
         // 如果加载失败，使用默认项目数据
         setProjects(defaultProjects);
       } finally {
+        setIsProjectsLoading(false);
         // 标记初始化完成
         setIsInitialized(true);
       }
@@ -932,7 +935,33 @@ const ProjectNavigationWebsite: React.FC = () => {
           {/* Projects List */}
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">所有项目</h2>
-            {projects.length === 0 ? (
+            {isProjectsLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <Card key={`admin-skeleton-${index}`}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-5 w-40" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                        <div className="ml-4 flex gap-2">
+                          <Skeleton className="h-8 w-8" />
+                          <Skeleton className="h-8 w-8" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-5 w-16" />
+                        <Skeleton className="h-5 w-14" />
+                        <Skeleton className="h-5 w-12" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : projects.length === 0 ? (
               <Card>
                 <CardContent className="py-16 text-center">
                   <p className="text-muted-foreground">暂无项目，点击上方按钮添加您的第一个项目</p>
@@ -1293,114 +1322,144 @@ const ProjectNavigationWebsite: React.FC = () => {
             })}
           </TabsList>
 
-          {categories.map((category) => (
-            <TabsContent key={category.value} value={category.value} className="mt-0">
-              {filteredProjects.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                    <Search className="h-8 w-8 text-muted-foreground" />
+          {isProjectsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Card key={`skeleton-${index}`} className="flex flex-col overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
+                  <CardHeader className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <div className="flex flex-wrap gap-2">
+                      <Skeleton className="h-5 w-12" />
+                      <Skeleton className="h-5 w-14" />
+                      <Skeleton className="h-5 w-10" />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex gap-2 pt-4 border-t border-border">
+                    <Skeleton className="h-9 w-16" />
+                    <Skeleton className="h-9 flex-1" />
+                    <Skeleton className="h-9 w-16" />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            categories.map((category) => (
+              <TabsContent key={category.value} value={category.value} className="mt-0">
+                {filteredProjects.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                      <Search className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">No projects found</h3>
+                    <p className="text-muted-foreground">
+                      Try adjusting your search or filter criteria
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">No projects found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search or filter criteria
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProjects.map((project) => (
-                    <Card
-                      key={project.id}
-                      className="group hover:shadow-lg transition-all duration-300 hover:border-primary/50 flex flex-col overflow-hidden"
-                    >
-                      {showImages && project.image && (
-                        <div className="relative w-full h-48 overflow-hidden">
-                          <img
-                            src={project.image}
-                            alt={project.title}
-                            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        </div>
-                      )}
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                            {project.title}
-                          </CardTitle>
-                          <Badge
-                            variant="outline"
-                            className={`${getStatusColor(project.status)} capitalize text-xs`}
-                          >
-                            {project.status}
-                          </Badge>
-                        </div>
-                        <CardDescription className="line-clamp-3">
-                          {project.description}
-                        </CardDescription>
-                      </CardHeader>
-
-                      <CardContent className="flex-grow">
-                        <div className="flex flex-wrap gap-2">
-                          {project.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {tag}
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredProjects.map((project) => (
+                      <Card
+                        key={project.id}
+                        className="group hover:shadow-lg transition-all duration-300 hover:border-primary/50 flex flex-col overflow-hidden"
+                      >
+                        {showImages && project.image && (
+                          <div className="relative w-full h-48 overflow-hidden">
+                            <img
+                              src={project.image}
+                              alt={project.title}
+                              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          </div>
+                        )}
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                              {project.title}
+                            </CardTitle>
+                            <Badge
+                              variant="outline"
+                              className={`${getStatusColor(project.status)} capitalize text-xs`}
+                            >
+                              {project.status}
                             </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
+                          </div>
+                          <CardDescription className="line-clamp-3">
+                            {project.description}
+                          </CardDescription>
+                        </CardHeader>
 
-                      <CardFooter className="flex gap-2 pt-4 border-t border-border">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedProject(project);
-                            setIsDetailDialogOpen(true);
-                          }}
-                        >
-                          <Info className="h-4 w-4 mr-2" />
-                          详情
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="flex-1"
-                          asChild
-                        >
-                          <a
-                            href={project.liveUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            View Live
-                          </a>
-                        </Button>
-                        {project.githubUrl && (
+                        <CardContent className="flex-grow">
+                          <div className="flex flex-wrap gap-2">
+                            {project.tags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+
+                        <CardFooter className="flex gap-2 pt-4 border-t border-border">
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => {
+                              setSelectedProject(project);
+                              setIsDetailDialogOpen(true);
+                            }}
+                          >
+                            <Info className="h-4 w-4 mr-2" />
+                            详情
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="flex-1"
                             asChild
                           >
                             <a
-                              href={project.githubUrl}
+                              href={project.liveUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center justify-center gap-2"
                             >
-                              <Github className="h-4 w-4" />
-                              <span className="hidden sm:inline">Code</span>
+                              <ExternalLink className="h-4 w-4" />
+                              View Live
                             </a>
                           </Button>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          ))}
+                          {project.githubUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                            >
+                              <a
+                                href={project.githubUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-2"
+                              >
+                                <Github className="h-4 w-4" />
+                                <span className="hidden sm:inline">Code</span>
+                              </a>
+                            </Button>
+                          )}
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            ))
+          )}
         </Tabs>
       </main>
 
