@@ -12,9 +12,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/lib/useTheme';
 import { themes, ThemeName } from '@/lib/themes';
+import { useToast } from '@/hooks/use-toast';
 
 export const ThemeSwitcher: React.FC = () => {
-  const { theme: currentTheme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const { theme: currentTheme, setTheme } = useTheme(
+    () => toast({ title: "主题已保存" }),
+    (error) => toast({ title: "保存失败", description: error, variant: "destructive" })
+  );
 
   return (
     <Dialog>

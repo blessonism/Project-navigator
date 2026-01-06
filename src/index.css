@@ -106,3 +106,56 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Toast 样式修复 */
+@layer components {
+  /* Modern 主题详情页：隐藏滚动条但保留滚动能力 */
+  .modern-detail-scroll [data-radix-scroll-area-scrollbar] {
+    display: none;
+  }
+
+  .modern-detail-scroll [data-radix-scroll-area-viewport] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .modern-detail-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-radix-toast-viewport] {
+    position: fixed !important;
+    z-index: 9999 !important;
+    pointer-events: none;
+  }
+
+  [data-radix-toast-viewport] > * {
+    pointer-events: auto;
+  }
+
+  [data-state="open"][data-radix-toast] {
+    animation: toast-slide-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-state="closed"][data-radix-toast] {
+    animation: toast-slide-out 100ms ease-in;
+  }
+
+  @keyframes toast-slide-in {
+    from {
+      transform: translateX(calc(100% + 1rem));
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes toast-slide-out {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(100% + 1rem));
+    }
+  }
+}

@@ -16,6 +16,45 @@ import { EmptyState } from "./EmptyState";
 const DialogPortal = DialogPrimitive.Portal;
 const DialogClose = DialogPrimitive.Close;
 
+// Error Boundary for Timeline component
+class TimelineErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Timeline component error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full h-32 flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <p>时间线加载失败</p>
+            <button
+              onClick={() => this.setState({ hasError: false })}
+              className="text-primary hover:underline text-sm mt-2"
+            >
+              重试
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 interface TimelineEntry {
   title: string;
   content: React.ReactNode;
@@ -31,14 +70,14 @@ const Timeline = ({ data }: { data: TimelineEntry[] }) => {
       const rect = ref.current.getBoundingClientRect();
       setHeight(rect.height);
     }
-  }, [ref]);
+  }, [ref, data]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 10%", "end 50%"],
   });
 
-  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
+  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, Math.max(height, 100)]);
   const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
 
   return (
@@ -237,7 +276,9 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
           <DialogPrimitive.Content className={cn(
             "theme-modern fixed left-[50%] top-[50%] z-50 grid w-full max-w-6xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background/95 backdrop-blur-xl shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg max-h-[90vh] overflow-hidden p-0 border border-border/50"
           )}>
-            <ScrollArea className="h-[90vh]">
+            <DialogPrimitive.Title className="sr-only">{project.title}</DialogPrimitive.Title>
+            <DialogPrimitive.Description className="sr-only">{project.description}</DialogPrimitive.Description>
+            <ScrollArea className="h-[90vh] modern-detail-scroll" hideScrollbar>
               <div className="relative">
                 {/* Hero Section */}
                 <div className="relative h-[400px] bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
@@ -437,7 +478,9 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
                       {timelineData.length > 0 ? (
                         <div>
                           <h3 className="text-lg font-semibold mb-3">项目时间线</h3>
-                          <Timeline data={timelineData} />
+                          <TimelineErrorBoundary>
+                            <Timeline data={timelineData} />
+                          </TimelineErrorBoundary>
                         </div>
                       ) : (
                         <EmptyState message="暂无时间线数据" variant="modern" />

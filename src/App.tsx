@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,9 @@ import { ExternalLink, Github, Search, Globe, Code2, Rocket, Filter, Image as Im
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { verifyPassword, isAuthenticated, setAuthenticated, logout } from '@/lib/auth';
+import { getLocalProjectsSnapshot, getLocalSettingsSnapshot, loadProjects, saveProjects, loadSettings, saveSetting } from '@/lib/storage';
+import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 import ProjectDetailDialog from '@/components/ProjectDetailDialog';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import {
@@ -103,13 +106,16 @@ interface ProjectFormData {
 }
 
 const ProjectNavigationWebsite: React.FC = () => {
+  const { toast } = useToast();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const hasImageSettingToast = useRef(false);
+
   const defaultProjects: Project[] = [
     {
       id: '1',
-      title: 'E-Commerce Platform',
+      title: 'Allist',
       description: 'A full-stack e-commerce solution with payment integration, inventory management, and real-time analytics dashboard.',
-      liveUrl: 'https://example.com/ecommerce',
-      githubUrl: 'https://github.com/user/ecommerce',
+      liveUrl: 'https://alist.sukisq.cloud',
       tags: ['React', 'Node.js', 'MongoDB', 'Stripe'],
       category: 'web',
       status: 'live',
@@ -255,10 +261,10 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
     {
       id: '2',
-      title: 'Task Management App',
+      title: 'Blog',
       description: 'Collaborative task management tool with drag-and-drop interface, team collaboration features, and deadline tracking.',
-      liveUrl: 'https://example.com/taskapp',
-      githubUrl: 'https://github.com/user/taskapp',
+      liveUrl: 'https://blog.sukisq.me',
+      githubUrl: 'https://github.com/blessonism/Hextra-blog',
       tags: ['Vue.js', 'Firebase', 'Tailwind CSS'],
       category: 'web',
       status: 'live',
@@ -411,10 +417,10 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
     {
       id: '3',
-      title: 'Weather Dashboard',
+      title: 'weread2flomo',
       description: 'Real-time weather monitoring dashboard with interactive maps, forecasts, and historical data visualization.',
-      liveUrl: 'https://example.com/weather',
-      githubUrl: 'https://github.com/user/weather',
+      liveUrl: 'https://weread2flomo.sukisq.me/',
+      githubUrl: 'https://github.com/blessonism/weread2flomo',
       tags: ['React', 'TypeScript', 'Chart.js', 'API'],
       category: 'web',
       status: 'live',
@@ -422,10 +428,10 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
     {
       id: '4',
-      title: 'Portfolio Generator',
+      title: '倒计时',
       description: 'AI-powered portfolio website generator that creates personalized portfolio sites based on user input and preferences.',
-      liveUrl: 'https://example.com/portfolio-gen',
-      githubUrl: 'https://github.com/user/portfolio-gen',
+      liveUrl: 'https://time.sukisq.me/',
+      githubUrl: 'https://github.com/blessonism/deadline',
       tags: ['Next.js', 'OpenAI', 'Prisma', 'PostgreSQL'],
       category: 'tool',
       status: 'live',
@@ -433,9 +439,10 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
     {
       id: '5',
-      title: 'Social Media Analytics',
+      title: '工具导航栏',
       description: 'Comprehensive analytics platform for tracking social media performance across multiple platforms with AI insights.',
-      liveUrl: 'https://example.com/analytics',
+      liveUrl: 'https://tool.sukisq.me/zh',
+      githubUrl: 'https://github.com/blessonism/devtoolset',
       tags: ['Python', 'Django', 'React', 'TensorFlow'],
       category: 'analytics',
       status: 'development',
@@ -443,10 +450,10 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
     {
       id: '6',
-      title: 'Fitness Tracker',
+      title: 'Prompt 优化器',
       description: 'Mobile-first fitness tracking application with workout plans, nutrition tracking, and progress visualization.',
-      liveUrl: 'https://example.com/fitness',
-      githubUrl: 'https://github.com/user/fitness',
+      liveUrl: 'https://prompt.sukisq.me/',
+      githubUrl: 'https://github.com/blessonism/prompt',
       tags: ['React Native', 'Redux', 'Express', 'MySQL'],
       category: 'mobile',
       status: 'live',
@@ -486,10 +493,13 @@ const ProjectNavigationWebsite: React.FC = () => {
     },
   ];
 
-  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const localProjects = getLocalProjectsSnapshot();
+    return localProjects.length > 0 ? localProjects : defaultProjects;
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [showImages, setShowImages] = useState(true);
+  const [showImages, setShowImages] = useState(() => getLocalSettingsSnapshot().showImages);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -542,23 +552,71 @@ const ProjectNavigationWebsite: React.FC = () => {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('projects');
-    if (saved) {
-      setProjects(JSON.parse(saved));
-    }
-    const savedImageMode = localStorage.getItem('showImages');
-    if (savedImageMode !== null) {
-      setShowImages(savedImageMode === 'true');
-    }
+    // 异步加载项目数据和设置
+    const loadData = async () => {
+      try {
+        // 加载项目数据
+        const projectsData = await loadProjects();
+
+        // 如果加载的数据为空，使用默认项目数据
+        if (projectsData.length > 0) {
+          setProjects(projectsData);
+        } else {
+          setProjects(defaultProjects);
+        }
+
+        // 加载用户设置
+        const settings = await loadSettings();
+        setShowImages(settings.showImages);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        // 如果加载失败，使用默认项目数据
+        setProjects(defaultProjects);
+      } finally {
+        // 标记初始化完成
+        setIsInitialized(true);
+      }
+    };
+
+    loadData();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('projects', JSON.stringify(projects));
-  }, [projects]);
+  const persistProjects = async (nextProjects: Project[]) => {
+    try {
+      await saveProjects(nextProjects);
+    } catch (error) {
+      console.error('保存项目数据失败:', error);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('showImages', String(showImages));
-  }, [showImages]);
+    // 避免初始化时触发 toast
+    if (!isInitialized) return;
+    if (!hasImageSettingToast.current) {
+      hasImageSettingToast.current = true;
+      return;
+    }
+
+    // 异步保存图片显示设置
+    const saveImageSetting = async () => {
+      try {
+        await saveSetting('showImages', showImages);
+        toast({
+          title: "设置已保存",
+          description: "图片显示设置已同步到云端",
+        });
+      } catch (error) {
+        console.error('保存图片显示设置失败:', error);
+        toast({
+          title: "保存失败",
+          description: "设置已保存到本地，但云端同步失败",
+          variant: "destructive",
+        });
+      }
+    };
+
+    saveImageSetting();
+  }, [showImages, toast, isInitialized]);
 
   // 监听 URL 参数和快捷键
   useEffect(() => {
@@ -701,7 +759,7 @@ const ProjectNavigationWebsite: React.FC = () => {
 
     if (editingProject) {
       // 编辑现有项目
-      setProjects(projects.map(p =>
+      const updatedProjects = projects.map(p =>
         p.id === editingProject.id
           ? {
               ...p,
@@ -722,7 +780,13 @@ const ProjectNavigationWebsite: React.FC = () => {
               timeline: timelineArray,
             }
           : p
-      ));
+      );
+      setProjects(updatedProjects);
+      void persistProjects(updatedProjects);
+      toast({
+        title: "项目已更新",
+        description: "项目信息已保存",
+      });
     } else {
       // 添加新项目
       const newProject: Project = {
@@ -743,7 +807,13 @@ const ProjectNavigationWebsite: React.FC = () => {
         duration: formData.duration || undefined,
         timeline: timelineArray,
       };
-      setProjects([...projects, newProject]);
+      const updatedProjects = [...projects, newProject];
+      setProjects(updatedProjects);
+      void persistProjects(updatedProjects);
+      toast({
+        title: "项目已添加",
+        description: "新项目已加入列表",
+      });
     }
 
     setIsDialogOpen(false);
@@ -755,7 +825,14 @@ const ProjectNavigationWebsite: React.FC = () => {
 
   const confirmDelete = () => {
     if (deleteProjectId) {
-      setProjects(projects.filter(p => p.id !== deleteProjectId));
+      const targetProject = projects.find((project) => project.id === deleteProjectId);
+      const updatedProjects = projects.filter(p => p.id !== deleteProjectId);
+      setProjects(updatedProjects);
+      void persistProjects(updatedProjects);
+      toast({
+        title: "项目已删除",
+        description: targetProject ? `已删除：${targetProject.title}` : "项目已从列表移除",
+      });
       setDeleteProjectId(null);
     }
   };
@@ -1161,6 +1238,9 @@ const ProjectNavigationWebsite: React.FC = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Toast 通知 */}
+        <Toaster />
       </div>
     );
   }
@@ -1427,6 +1507,9 @@ const ProjectNavigationWebsite: React.FC = () => {
           onOpenChange={setIsDetailDialogOpen}
         />
       )}
+
+      {/* Toast 通知 */}
+      <Toaster />
     </div>
   );
 };

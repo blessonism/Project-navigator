@@ -2,6 +2,8 @@
  * 身份验证工具函数
  */
 
+import { safeSessionStorage } from './storageDetector';
+
 const SESSION_KEY = 'navigator_admin_authenticated';
 
 /**
@@ -35,7 +37,7 @@ export async function verifyPassword(password: string): Promise<boolean> {
  * 检查当前会话是否已认证
  */
 export function isAuthenticated(): boolean {
-  return sessionStorage.getItem(SESSION_KEY) === 'true';
+  return safeSessionStorage.getItem(SESSION_KEY) === 'true';
 }
 
 /**
@@ -43,9 +45,9 @@ export function isAuthenticated(): boolean {
  */
 export function setAuthenticated(authenticated: boolean): void {
   if (authenticated) {
-    sessionStorage.setItem(SESSION_KEY, 'true');
+    safeSessionStorage.setItem(SESSION_KEY, 'true');
   } else {
-    sessionStorage.removeItem(SESSION_KEY);
+    safeSessionStorage.removeItem(SESSION_KEY);
   }
 }
 

@@ -165,15 +165,10 @@ interface ProjectDetailDialogProps {
 function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialogProps) {
   const { theme } = useTheme();
 
-  // If modern theme, use ModernProjectDetailDialog
-  if (theme === 'modern') {
-    return <ModernProjectDetailDialog project={project} open={open} onOpenChange={onOpenChange} />;
-  }
-
-  // Classic theme - original implementation
+  // 始终在顶层调用 hooks，避免渲染路径不一致
   const [activeImage, setActiveImage] = React.useState(0);
 
-  // Convert timeline events to timeline entries
+  // 先完成 hooks 调用，再根据主题决定渲染路径
   const timelineData: TimelineEntry[] = React.useMemo(() => {
     if (!project.timeline) return [];
 
@@ -201,13 +196,24 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
     }));
   }, [project.timeline]);
 
-  const images = project.screenshots || [project.image];
+  if (theme === 'modern') {
+    return <ModernProjectDetailDialog project={project} open={open} onOpenChange={onOpenChange} />;
+  }
+
+  const images =
+    project.screenshots && project.screenshots.length > 0
+      ? project.screenshots
+      : project.image
+        ? [project.image]
+        : [];
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay />
         <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-5xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-h-[90vh] overflow-hidden">
+          <DialogPrimitive.Title className="sr-only">{project.title}</DialogPrimitive.Title>
+          <DialogPrimitive.Description className="sr-only">{project.description}</DialogPrimitive.Description>
           <ScrollArea className="h-[90vh]">
             <div className="relative">
               {/* Hero Section with Image Gallery */}
