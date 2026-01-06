@@ -196,16 +196,23 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
     }));
   }, [project.timeline]);
 
+  const images = React.useMemo(
+    () =>
+      project.screenshots && project.screenshots.length > 0
+        ? project.screenshots
+        : project.image
+          ? [project.image]
+          : [],
+    [project.screenshots, project.image]
+  );
+
+  React.useEffect(() => {
+    setActiveImage(0);
+  }, [project.id]);
+
   if (theme === 'modern') {
     return <ModernProjectDetailDialog project={project} open={open} onOpenChange={onOpenChange} />;
   }
-
-  const images =
-    project.screenshots && project.screenshots.length > 0
-      ? project.screenshots
-      : project.image
-        ? [project.image]
-        : [];
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -231,19 +238,42 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
 
                 {/* Image Thumbnails */}
                 {images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 p-2 bg-background/80 backdrop-blur-sm rounded-lg">
-                    {images.map((img, idx) => (
+                  <div className="absolute inset-x-0 bottom-0 flex justify-center">
+                    <div className="group relative flex flex-col items-center">
+                      <span
+                        className="absolute bottom-0 left-1/2 hidden h-16 w-40 -translate-x-1/2 md:block"
+                        aria-hidden="true"
+                      />
                       <button
-                        key={idx}
-                        onClick={() => setActiveImage(idx)}
+                        type="button"
+                        className="absolute bottom-2 left-1/2 z-10 hidden h-2 w-16 -translate-x-1/2 items-center justify-center rounded-full md:flex"
+                        aria-label="显示缩略图"
+                      >
+                        <span className="h-1 w-8 rounded-full bg-foreground/60" />
+                      </button>
+                      <div
                         className={cn(
-                          "w-16 h-16 rounded overflow-hidden border-2 transition-all",
-                          activeImage === idx ? "border-primary scale-110" : "border-transparent opacity-60 hover:opacity-100"
+                          "absolute bottom-6 left-1/2 z-10 -translate-x-1/2 flex gap-2 rounded-lg bg-background/80 p-2 backdrop-blur-sm transition-all duration-300",
+                          "opacity-100 translate-y-0",
+                          "md:opacity-0 md:translate-y-3 md:pointer-events-none",
+                          "md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto",
+                          "md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:pointer-events-auto"
                         )}
                       >
-                        <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
+                        {images.map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setActiveImage(idx)}
+                            className={cn(
+                              "w-24 h-18 rounded overflow-hidden border transition-all",
+                              activeImage === idx ? "border-primary scale-110" : "border-transparent opacity-60 hover:opacity-100"
+                            )}
+                          >
+                            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
 
