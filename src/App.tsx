@@ -1287,7 +1287,10 @@ const ProjectNavigationWebsite: React.FC = () => {
                   A collection of {projects.length} deployed projects
                 </p>
               </div>
-              <Badge variant="outline" className="text-sm">
+              <Badge
+                variant="outline"
+                className="shrink-0 whitespace-nowrap px-2 py-0 text-xs sm:px-2.5 sm:py-0.5 sm:text-sm"
+              >
                 {filteredProjects.length} Projects
               </Badge>
             </div>
