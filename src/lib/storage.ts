@@ -1,26 +1,8 @@
 import { supabase, isSupabaseConfigured, SupabaseProject } from './supabase'
 import { safeLocalStorage } from './storageDetector'
+import type { Project, TechStackItem, Challenge, TimelineEvent } from '@/types/project'
 
-// 项目类型定义（与 App.tsx 保持一致）
-export interface Project {
-  id: string
-  title: string
-  description: string
-  liveUrl: string
-  githubUrl?: string
-  tags: string[]
-  category: string
-  image?: string
-  status: 'live' | 'development' | 'archived'
-  detailedDescription?: string
-  screenshots?: string[]
-  techStack?: any[]
-  features?: string[]
-  challenges?: any[]
-  timeline?: any[]
-  startDate?: string
-  duration?: string
-}
+export type { Project, TechStackItem, Challenge, TimelineEvent }
 
 // 存储服务接口
 export interface StorageService {
@@ -53,7 +35,8 @@ class HybridStorage implements StorageService {
       challenges: project.challenges || [],
       timeline: project.timeline || [],
       start_date: project.startDate,
-      duration: project.duration
+      duration: project.duration,
+      show_gallery: project.showGallery
     }
   }
 
@@ -76,7 +59,8 @@ class HybridStorage implements StorageService {
       challenges: supabaseProject.challenges,
       timeline: supabaseProject.timeline,
       startDate: supabaseProject.start_date,
-      duration: supabaseProject.duration
+      duration: supabaseProject.duration,
+      showGallery: supabaseProject.show_gallery
     }
   }
 

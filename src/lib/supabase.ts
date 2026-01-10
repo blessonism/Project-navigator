@@ -47,6 +47,7 @@ export interface SupabaseProject {
   timeline?: any[]
   start_date?: string
   duration?: string
+  show_gallery?: boolean
   created_at?: string
   updated_at?: string
 }

@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChallengeSection, Challenge } from "./ChallengeSection";
 import { EmptyState } from "./EmptyState";
-import { useTheme } from "@/lib/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import ModernProjectDetailDialog from "./ModernProjectDetailDialog";
 
 const DialogPortal = DialogPrimitive.Portal;

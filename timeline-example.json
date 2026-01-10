@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "date": "2024-01-15",
+    "title": "项目启动",
+    "description": "完成需求分析和技术选型，确定使用 React + TypeScript + Vite 技术栈",
+    "type": "milestone"
+  },
+  {
+    "id": "2",
+    "date": "2024-02-01",
+    "title": "核心功能开发",
+    "description": "实现项目展示、分类筛选、搜索功能",
+    "type": "feature"
+  },
+  {
+    "id": "3",
+    "date": "2024-02-20",
+    "title": "修复响应式布局问题",
+    "description": "解决移动端显示异常，优化平板设备适配",
+    "type": "bugfix"
+  },
+  {
+    "id": "4",
+    "date": "2024-03-05",
+    "title": "添加管理功能",
+    "description": "实现密码认证、项目增删改功能",
+    "type": "feature"
+  },
+  {
+    "id": "5",
+    "date": "2024-03-20",
+    "title": "详情页上线",
+    "description": "发布项目详情页功能，支持 Markdown、截图画廊、技术栈展示",
+    "type": "release"
+  },
+  {
+    "id": "6",
+    "date": "2024-04-01",
+    "title": "时间线功能发布",
+    "description": "完成项目时间线视图，展示项目发展历程",
+    "type": "release"
+  }
+]

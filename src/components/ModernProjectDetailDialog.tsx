@@ -1,17 +1,30 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X, Github, ExternalLink, CheckCircle2, Code2, Lightbulb, Target, Zap, ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChallengeSection, Challenge } from "./ChallengeSection";
-import { EmptyState } from "./EmptyState";
+import * as React from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import {
+  X,
+  Github,
+  ExternalLink,
+  CheckCircle2,
+  Code2,
+  Lightbulb,
+  Target,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  AlertCircle,
+} from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ChallengeSection, Challenge } from './ChallengeSection';
+import { EmptyState } from './EmptyState';
 
 const DialogPortal = DialogPrimitive.Portal;
 const DialogClose = DialogPrimitive.Close;
@@ -74,7 +87,7 @@ const Timeline = ({ data }: { data: TimelineEntry[] }) => {
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 10%", "end 50%"],
+    offset: ['start 10%', 'end 50%'],
   });
 
   const heightTransform = useTransform(scrollYProgress, [0, 1], [0, Math.max(height, 100)]);
@@ -103,7 +116,7 @@ const Timeline = ({ data }: { data: TimelineEntry[] }) => {
           </div>
         ))}
         <div
-          style={{ height: height + "px" }}
+          style={{ height: height + 'px' }}
           className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-gradient-to-b from-transparent via-border to-transparent [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
         >
           <motion.div
@@ -126,7 +139,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       className
     )}
     {...props}
@@ -172,6 +185,7 @@ interface Project {
   status: 'live' | 'development' | 'archived';
   image?: string;
   tags?: string[];
+  showGallery?: boolean;
 }
 
 interface ModernProjectDetailDialogProps {
@@ -180,16 +194,22 @@ interface ModernProjectDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjectDetailDialogProps) {
+function ModernProjectDetailDialog({
+  project,
+  open,
+  onOpenChange,
+}: ModernProjectDetailDialogProps) {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
+
+  const showGalleryTab = project.showGallery !== false;
 
   const screenshots: Screenshot[] = React.useMemo(() => {
     if (project.screenshots && project.screenshots.length > 0) {
       return project.screenshots.map((url, index) => ({
         url,
         title: `Screenshot ${index + 1}`,
-        description: ''
+        description: '',
       }));
     }
     if (project.image) {
@@ -202,7 +222,7 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
     if (!project.techStack) return [];
 
     const grouped: { [key: string]: string[] } = {};
-    project.techStack.forEach(tech => {
+    project.techStack.forEach((tech) => {
       const category = tech.category.charAt(0).toUpperCase() + tech.category.slice(1);
       if (!grouped[category]) {
         grouped[category] = [];
@@ -212,7 +232,7 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
 
     return Object.entries(grouped).map(([category, technologies]) => ({
       category,
-      technologies
+      technologies,
     }));
   }, [project.techStack]);
 
@@ -223,13 +243,13 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
       <Zap className="w-5 h-5" key="zap" />,
       <Target className="w-5 h-5" key="target" />,
       <Lightbulb className="w-5 h-5" key="lightbulb" />,
-      <CheckCircle2 className="w-5 h-5" key="check" />
+      <CheckCircle2 className="w-5 h-5" key="check" />,
     ];
 
     return project.features.map((feature, index) => ({
       title: feature,
       description: feature,
-      icon: icons[index % icons.length]
+      icon: icons[index % icons.length],
     }));
   }, [project.features]);
 
@@ -239,13 +259,11 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
     return project.timeline.map((event) => ({
       title: new Date(event.date).toLocaleDateString('zh-CN', {
         year: 'numeric',
-        month: 'long'
+        month: 'long',
       }),
       content: (
         <div>
-          <p className="text-foreground text-sm font-normal mb-4">
-            {event.title}
-          </p>
+          <p className="text-foreground text-sm font-normal mb-4">{event.title}</p>
           <div className="space-y-2">
             <div className="flex gap-2 items-center text-muted-foreground text-sm">
               {event.type === 'milestone' && <CheckCircle className="w-4 h-4 text-green-500" />}
@@ -273,11 +291,15 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
       <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
         <DialogPortal>
           <DialogOverlay />
-          <DialogPrimitive.Content className={cn(
-            "theme-modern fixed left-[50%] top-[50%] z-50 grid w-full max-w-6xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background/95 backdrop-blur-xl shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg max-h-[90vh] overflow-hidden p-0 border border-border/50"
-          )}>
+          <DialogPrimitive.Content
+            className={cn(
+              'theme-modern fixed left-[50%] top-[50%] z-50 grid w-full max-w-6xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background/95 backdrop-blur-xl shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg max-h-[90vh] overflow-hidden p-0 border border-border/50'
+            )}
+          >
             <DialogPrimitive.Title className="sr-only">{project.title}</DialogPrimitive.Title>
-            <DialogPrimitive.Description className="sr-only">{project.description}</DialogPrimitive.Description>
+            <DialogPrimitive.Description className="sr-only">
+              {project.description}
+            </DialogPrimitive.Description>
             <ScrollArea className="h-[90vh] modern-detail-scroll" hideScrollbar>
               <div className="relative">
                 {/* Hero Section */}
@@ -295,9 +317,7 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
                   <div className="relative h-full flex flex-col justify-end p-8">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h2 className="text-4xl font-bold mb-3 text-foreground">
-                          {project.title}
-                        </h2>
+                        <h2 className="text-4xl font-bold mb-3 text-foreground">{project.title}</h2>
                         <p className="text-lg text-muted-foreground max-w-2xl">
                           {project.description}
                         </p>
@@ -338,12 +358,29 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
                 {/* Content Section */}
                 <div className="p-8">
                   <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5 mb-8">
-                      <TabsTrigger value="overview" className="data-[state=active]:shadow-md">Overview</TabsTrigger>
-                      <TabsTrigger value="gallery" className="data-[state=active]:shadow-md">Gallery</TabsTrigger>
-                      <TabsTrigger value="tech" className="data-[state=active]:shadow-md">Tech Stack</TabsTrigger>
-                      <TabsTrigger value="challenges" className="data-[state=active]:shadow-md">Challenges</TabsTrigger>
-                      <TabsTrigger value="timeline" className="data-[state=active]:shadow-md">Timeline</TabsTrigger>
+                    <TabsList
+                      className={cn(
+                        'modern-tabs-list w-full mb-8 h-auto !p-[6px] !bg-transparent !rounded-xl',
+                        showGalleryTab ? 'grid grid-cols-5' : 'grid grid-cols-4'
+                      )}
+                    >
+                      <TabsTrigger value="overview" className="modern-tab-trigger !rounded-lg">
+                        Overview
+                      </TabsTrigger>
+                      {showGalleryTab && (
+                        <TabsTrigger value="gallery" className="modern-tab-trigger !rounded-lg">
+                          Gallery
+                        </TabsTrigger>
+                      )}
+                      <TabsTrigger value="tech" className="modern-tab-trigger !rounded-lg">
+                        Tech Stack
+                      </TabsTrigger>
+                      <TabsTrigger value="challenges" className="modern-tab-trigger !rounded-lg">
+                        Challenges
+                      </TabsTrigger>
+                      <TabsTrigger value="timeline" className="modern-tab-trigger !rounded-lg">
+                        Timeline
+                      </TabsTrigger>
                     </TabsList>
 
                     {/* Overview Tab */}
@@ -353,7 +390,7 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
                           <CardTitle>About This Project</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          {(project.detailedDescription || project.description) ? (
+                          {project.detailedDescription || project.description ? (
                             <p className="text-muted-foreground leading-relaxed">
                               {project.detailedDescription || project.description}
                             </p>
@@ -371,7 +408,10 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
                           </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {features.map((feature, index) => (
-                              <Card key={index} className="border-2 hover:border-primary/50 transition-colors bg-card/50 backdrop-blur-sm">
+                              <Card
+                                key={index}
+                                className="border-2 hover:border-primary/50 transition-colors bg-card/50 backdrop-blur-sm"
+                              >
                                 <CardHeader>
                                   <CardTitle className="flex items-center gap-2 text-lg">
                                     <div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -401,39 +441,41 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
                     </TabsContent>
 
                     {/* Gallery Tab */}
-                    <TabsContent value="gallery" className="space-y-6">
-                      {screenshots.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-4">
-                          {screenshots.map((screenshot, index) => (
-                          <Card
-                            key={index}
-                            className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group bg-card/50 backdrop-blur-sm"
-                            onClick={() => {
-                              setCurrentImageIndex(index);
-                              setIsImageModalOpen(true);
-                            }}
-                          >
-                            <div className="relative aspect-video overflow-hidden">
-                              <img
-                                src={screenshot.url}
-                                alt={screenshot.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                            <CardHeader>
-                              <CardTitle className="text-base">{screenshot.title}</CardTitle>
-                              {screenshot.description && (
-                                <CardDescription>{screenshot.description}</CardDescription>
-                              )}
-                            </CardHeader>
-                          </Card>
-                        ))}
-                      </div>
-                      ) : (
-                        <EmptyState message="暂无项目截图" variant="modern" />
-                      )}
-                    </TabsContent>
+                    {showGalleryTab && (
+                      <TabsContent value="gallery" className="space-y-6">
+                        {screenshots.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-4">
+                            {screenshots.map((screenshot, index) => (
+                              <Card
+                                key={index}
+                                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group bg-card/50 backdrop-blur-sm"
+                                onClick={() => {
+                                  setCurrentImageIndex(index);
+                                  setIsImageModalOpen(true);
+                                }}
+                              >
+                                <div className="relative aspect-video overflow-hidden">
+                                  <img
+                                    src={screenshot.url}
+                                    alt={screenshot.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                                <CardHeader>
+                                  <CardTitle className="text-base">{screenshot.title}</CardTitle>
+                                  {screenshot.description && (
+                                    <CardDescription>{screenshot.description}</CardDescription>
+                                  )}
+                                </CardHeader>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <EmptyState message="暂无项目截图" variant="modern" />
+                        )}
+                      </TabsContent>
+                    )}
 
                     {/* Tech Stack Tab */}
                     <TabsContent value="tech" className="space-y-6">
@@ -545,9 +587,7 @@ function ModernProjectDetailDialog({ project, open, onOpenChange }: ModernProjec
               className="w-full h-full object-contain rounded-lg"
             />
             <div className="text-center mt-4 text-white">
-              <h3 className="text-xl font-semibold">
-                {screenshots[currentImageIndex]?.title}
-              </h3>
+              <h3 className="text-xl font-semibold">{screenshots[currentImageIndex]?.title}</h3>
               {screenshots[currentImageIndex]?.description && (
                 <p className="text-sm text-gray-300 mt-1">
                   {screenshots[currentImageIndex]?.description}

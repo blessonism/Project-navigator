@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 import { themes, ThemeName } from '@/lib/themes';
 import { useToast } from '@/hooks/use-toast';
 
