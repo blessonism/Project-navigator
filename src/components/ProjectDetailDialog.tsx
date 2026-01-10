@@ -1,19 +1,30 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X, Github, ExternalLink, Calendar, CheckCircle, AlertCircle, Code2, Layers, Zap, Target } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChallengeSection, Challenge } from "./ChallengeSection";
-import { EmptyState } from "./EmptyState";
-import { useTheme } from "@/hooks/useTheme";
-import ModernProjectDetailDialog from "./ModernProjectDetailDialog";
+import * as React from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import {
+  X,
+  Github,
+  ExternalLink,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  Code2,
+  Layers,
+  Zap,
+  Target,
+} from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ChallengeSection, Challenge } from './ChallengeSection';
+import { EmptyState } from './EmptyState';
+import { useTheme } from '@/hooks/useTheme';
+import ModernProjectDetailDialog from './ModernProjectDetailDialog';
 
 const DialogPortal = DialogPrimitive.Portal;
 const DialogClose = DialogPrimitive.Close;
@@ -25,7 +36,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      'fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       className
     )}
     {...props}
@@ -43,7 +54,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-5xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-h-[90vh] overflow-hidden",
+          'fixed left-[50%] top-[50%] z-50 grid w-full max-w-5xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-h-[90vh] overflow-hidden',
           className
         )}
         {...props}
@@ -78,7 +89,7 @@ const Timeline = ({ data }: { data: TimelineEntry[] }) => {
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 10%", "end 50%"],
+    offset: ['start 10%', 'end 50%'],
   });
 
   const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
@@ -107,7 +118,7 @@ const Timeline = ({ data }: { data: TimelineEntry[] }) => {
           </div>
         ))}
         <div
-          style={{ height: height + "px" }}
+          style={{ height: height + 'px' }}
           className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-gradient-to-b from-transparent via-border to-transparent [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
         >
           <motion.div
@@ -154,6 +165,10 @@ interface Project {
   githubUrl?: string;
   status: 'live' | 'development' | 'archived';
   image?: string;
+  showOverview?: boolean;
+  showTechStack?: boolean;
+  showChallenges?: boolean;
+  showTimeline?: boolean;
 }
 
 interface ProjectDetailDialogProps {
@@ -168,6 +183,18 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
   // 始终在顶层调用 hooks，避免渲染路径不一致
   const [activeImage, setActiveImage] = React.useState(0);
 
+  const showOverviewTab = project.showOverview !== false;
+  const showTechStackTab = project.showTechStack !== false;
+  const showChallengesTab = project.showChallenges !== false;
+  const showTimelineTab = project.showTimeline !== false;
+
+  const visibleTabCount = [
+    showOverviewTab,
+    showTechStackTab,
+    showChallengesTab,
+    showTimelineTab,
+  ].filter(Boolean).length;
+
   // 先完成 hooks 调用，再根据主题决定渲染路径
   const timelineData: TimelineEntry[] = React.useMemo(() => {
     if (!project.timeline) return [];
@@ -175,13 +202,11 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
     return project.timeline.map((event) => ({
       title: new Date(event.date).toLocaleDateString('zh-CN', {
         year: 'numeric',
-        month: 'long'
+        month: 'long',
       }),
       content: (
         <div>
-          <p className="text-foreground text-sm font-normal mb-4">
-            {event.title}
-          </p>
+          <p className="text-foreground text-sm font-normal mb-4">{event.title}</p>
           <div className="space-y-2">
             <div className="flex gap-2 items-center text-muted-foreground text-sm">
               {event.type === 'milestone' && <CheckCircle className="w-4 h-4 text-green-500" />}
@@ -220,7 +245,9 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
         <DialogOverlay />
         <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-5xl translate-x-[-50%] translate-y-[-50%] gap-0 bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-h-[90vh] overflow-hidden">
           <DialogPrimitive.Title className="sr-only">{project.title}</DialogPrimitive.Title>
-          <DialogPrimitive.Description className="sr-only">{project.description}</DialogPrimitive.Description>
+          <DialogPrimitive.Description className="sr-only">
+            {project.description}
+          </DialogPrimitive.Description>
           <ScrollArea className="h-[90vh]">
             <div className="relative">
               {/* Hero Section with Image Gallery */}
@@ -253,11 +280,11 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
                       </button>
                       <div
                         className={cn(
-                          "absolute bottom-6 left-1/2 z-10 -translate-x-1/2 flex gap-2 rounded-lg bg-background/80 p-2 backdrop-blur-sm transition-all duration-300",
-                          "opacity-100 translate-y-0",
-                          "md:opacity-0 md:translate-y-3 md:pointer-events-none",
-                          "md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto",
-                          "md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:pointer-events-auto"
+                          'absolute bottom-6 left-1/2 z-10 -translate-x-1/2 flex gap-2 rounded-lg bg-background/80 p-2 backdrop-blur-sm transition-all duration-300',
+                          'opacity-100 translate-y-0',
+                          'md:opacity-0 md:translate-y-3 md:pointer-events-none',
+                          'md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto',
+                          'md:group-focus-within:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:pointer-events-auto'
                         )}
                       >
                         {images.map((img, idx) => (
@@ -265,11 +292,17 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
                             key={idx}
                             onClick={() => setActiveImage(idx)}
                             className={cn(
-                              "w-24 h-18 rounded overflow-hidden border transition-all",
-                              activeImage === idx ? "border-primary scale-110" : "border-transparent opacity-60 hover:opacity-100"
+                              'w-24 h-18 rounded overflow-hidden border transition-all',
+                              activeImage === idx
+                                ? 'border-primary scale-110'
+                                : 'border-transparent opacity-60 hover:opacity-100'
                             )}
                           >
-                            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                            <img
+                              src={img}
+                              alt={`Thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
                           </button>
                         ))}
                       </div>
@@ -280,11 +313,17 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
                 {/* Status Badge */}
                 <div className="absolute top-4 right-4">
                   <Badge
-                    variant={project.status === "live" ? "default" : project.status === "development" ? "secondary" : "outline"}
+                    variant={
+                      project.status === 'live'
+                        ? 'default'
+                        : project.status === 'development'
+                          ? 'secondary'
+                          : 'outline'
+                    }
                     className="capitalize"
                   >
-                    {project.status === "live" && <CheckCircle className="w-3 h-3 mr-1" />}
-                    {project.status === "development" && <Zap className="w-3 h-3 mr-1" />}
+                    {project.status === 'live' && <CheckCircle className="w-3 h-3 mr-1" />}
+                    {project.status === 'development' && <Zap className="w-3 h-3 mr-1" />}
                     {project.status}
                   </Badge>
                 </div>
@@ -328,113 +367,143 @@ function ProjectDetailDialog({ project, open, onOpenChange }: ProjectDetailDialo
                 </div>
 
                 {/* Tabs Section */}
-                <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="overview">
-                      <Layers className="w-4 h-4 mr-2" />
-                      概览
-                    </TabsTrigger>
-                    <TabsTrigger value="tech">
-                      <Code2 className="w-4 h-4 mr-2" />
-                      技术栈
-                    </TabsTrigger>
-                    <TabsTrigger value="challenges">
-                      <Target className="w-4 h-4 mr-2" />
-                      挑战与方案
-                    </TabsTrigger>
-                    <TabsTrigger value="timeline">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      时间线
-                    </TabsTrigger>
+                <Tabs
+                  defaultValue={
+                    showOverviewTab
+                      ? 'overview'
+                      : showTechStackTab
+                        ? 'tech'
+                        : showChallengesTab
+                          ? 'challenges'
+                          : 'timeline'
+                  }
+                  className="w-full"
+                >
+                  <TabsList
+                    className="grid w-full"
+                    style={{ gridTemplateColumns: `repeat(${visibleTabCount}, minmax(0, 1fr))` }}
+                  >
+                    {showOverviewTab && (
+                      <TabsTrigger value="overview">
+                        <Layers className="w-4 h-4 mr-2" />
+                        概览
+                      </TabsTrigger>
+                    )}
+                    {showTechStackTab && (
+                      <TabsTrigger value="tech">
+                        <Code2 className="w-4 h-4 mr-2" />
+                        技术栈
+                      </TabsTrigger>
+                    )}
+                    {showChallengesTab && (
+                      <TabsTrigger value="challenges">
+                        <Target className="w-4 h-4 mr-2" />
+                        挑战与方案
+                      </TabsTrigger>
+                    )}
+                    {showTimelineTab && (
+                      <TabsTrigger value="timeline">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        时间线
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
-                  <TabsContent value="overview" className="space-y-4 mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>About This Project</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {(project.detailedDescription || project.description) ? (
-                          <p className="text-muted-foreground leading-relaxed">
-                            {project.detailedDescription || project.description}
-                          </p>
-                        ) : (
-                          <EmptyState message="暂无项目详情" variant="classic" />
-                        )}
-                      </CardContent>
-                    </Card>
+                  {showOverviewTab && (
+                    <TabsContent value="overview" className="space-y-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>About This Project</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {project.detailedDescription || project.description ? (
+                            <p className="text-muted-foreground leading-relaxed">
+                              {project.detailedDescription || project.description}
+                            </p>
+                          ) : (
+                            <EmptyState message="暂无项目详情" variant="classic" />
+                          )}
+                        </CardContent>
+                      </Card>
 
-                    {/* 功能特性 */}
-                    {project.features && project.features.length > 0 ? (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">核心功能</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {project.features.map((feature, idx) => (
-                            <motion.div
-                              key={idx}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.05 }}
-                              className="flex items-start gap-2 p-3 rounded-lg bg-muted/50"
-                            >
-                              <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                              <span className="text-sm">{feature}</span>
-                            </motion.div>
-                          ))}
+                      {/* 功能特性 */}
+                      {project.features && project.features.length > 0 ? (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">核心功能</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {project.features.map((feature, idx) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="flex items-start gap-2 p-3 rounded-lg bg-muted/50"
+                              >
+                                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                                <span className="text-sm">{feature}</span>
+                              </motion.div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <EmptyState message="暂无功能特性" variant="classic" />
-                    )}
-                  </TabsContent>
+                      ) : (
+                        <EmptyState message="暂无功能特性" variant="classic" />
+                      )}
+                    </TabsContent>
+                  )}
 
-                  <TabsContent value="tech" className="space-y-4 mt-6">
-                    {project.techStack && project.techStack.length > 0 ? (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">技术栈</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {project.techStack.map((tech, idx) => (
-                            <motion.div
-                              key={idx}
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: idx * 0.05 }}
-                              className="p-4 rounded-lg border bg-card"
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-semibold">{tech.name}</h4>
-                                <Badge variant="outline" className="text-xs">
-                                  {tech.category}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{tech.purpose}</p>
-                            </motion.div>
-                          ))}
+                  {showTechStackTab && (
+                    <TabsContent value="tech" className="space-y-4 mt-6">
+                      {project.techStack && project.techStack.length > 0 ? (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">技术栈</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {project.techStack.map((tech, idx) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="p-4 rounded-lg border bg-card"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-semibold">{tech.name}</h4>
+                                  <Badge variant="outline" className="text-xs">
+                                    {tech.category}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{tech.purpose}</p>
+                              </motion.div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <EmptyState message="暂无技术栈信息" variant="classic" />
-                    )}
-                  </TabsContent>
+                      ) : (
+                        <EmptyState message="暂无技术栈信息" variant="classic" />
+                      )}
+                    </TabsContent>
+                  )}
 
-                  <TabsContent value="challenges" className="space-y-4 mt-6">
-                    {project.challenges && project.challenges.length > 0 ? (
-                      <ChallengeSection challenges={project.challenges} />
-                    ) : (
-                      <EmptyState message="暂无挑战与解决方案" variant="classic" />
-                    )}
-                  </TabsContent>
+                  {showChallengesTab && (
+                    <TabsContent value="challenges" className="space-y-4 mt-6">
+                      {project.challenges && project.challenges.length > 0 ? (
+                        <ChallengeSection challenges={project.challenges} />
+                      ) : (
+                        <EmptyState message="暂无挑战与解决方案" variant="classic" />
+                      )}
+                    </TabsContent>
+                  )}
 
-                  <TabsContent value="timeline" className="mt-6">
-                    {timelineData.length > 0 ? (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">项目时间线</h3>
-                        <Timeline data={timelineData} />
-                      </div>
-                    ) : (
-                      <EmptyState message="暂无时间线数据" variant="classic" />
-                    )}
-                  </TabsContent>
+                  {showTimelineTab && (
+                    <TabsContent value="timeline" className="mt-6">
+                      {timelineData.length > 0 ? (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">项目时间线</h3>
+                          <Timeline data={timelineData} />
+                        </div>
+                      ) : (
+                        <EmptyState message="暂无时间线数据" variant="classic" />
+                      )}
+                    </TabsContent>
+                  )}
                 </Tabs>
               </div>
             </div>

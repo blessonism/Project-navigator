@@ -39,6 +39,10 @@ export interface Project {
   startDate?: string;
   duration?: string;
   showGallery?: boolean;
+  showOverview?: boolean;
+  showTechStack?: boolean;
+  showChallenges?: boolean;
+  showTimeline?: boolean;
 }
 
 export interface ProjectFormData {
@@ -60,6 +64,10 @@ export interface ProjectFormData {
   duration: string;
   timelineData: string;
   showGallery: boolean;
+  showOverview: boolean;
+  showTechStack: boolean;
+  showChallenges: boolean;
+  showTimeline: boolean;
 }
 
 export type ProjectStatus = Project['status'];

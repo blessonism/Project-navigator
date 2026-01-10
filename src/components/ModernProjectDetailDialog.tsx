@@ -186,6 +186,10 @@ interface Project {
   image?: string;
   tags?: string[];
   showGallery?: boolean;
+  showOverview?: boolean;
+  showTechStack?: boolean;
+  showChallenges?: boolean;
+  showTimeline?: boolean;
 }
 
 interface ModernProjectDetailDialogProps {
@@ -202,7 +206,19 @@ function ModernProjectDetailDialog({
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
 
+  const showOverviewTab = project.showOverview !== false;
   const showGalleryTab = project.showGallery !== false;
+  const showTechStackTab = project.showTechStack !== false;
+  const showChallengesTab = project.showChallenges !== false;
+  const showTimelineTab = project.showTimeline !== false;
+
+  const visibleTabCount = [
+    showOverviewTab,
+    showGalleryTab,
+    showTechStackTab,
+    showChallengesTab,
+    showTimelineTab,
+  ].filter(Boolean).length;
 
   const screenshots: Screenshot[] = React.useMemo(() => {
     if (project.screenshots && project.screenshots.length > 0) {
@@ -357,88 +373,112 @@ function ModernProjectDetailDialog({
 
                 {/* Content Section */}
                 <div className="p-8">
-                  <Tabs defaultValue="overview" className="w-full">
+                  <Tabs
+                    defaultValue={
+                      showOverviewTab
+                        ? 'overview'
+                        : showGalleryTab
+                          ? 'gallery'
+                          : showTechStackTab
+                            ? 'tech'
+                            : showChallengesTab
+                              ? 'challenges'
+                              : 'timeline'
+                    }
+                    className="w-full"
+                  >
                     <TabsList
                       className={cn(
                         'modern-tabs-list w-full mb-8 h-auto !p-[6px] !bg-transparent !rounded-xl',
-                        showGalleryTab ? 'grid grid-cols-5' : 'grid grid-cols-4'
+                        `grid grid-cols-${visibleTabCount}`
                       )}
+                      style={{ gridTemplateColumns: `repeat(${visibleTabCount}, minmax(0, 1fr))` }}
                     >
-                      <TabsTrigger value="overview" className="modern-tab-trigger !rounded-lg">
-                        Overview
-                      </TabsTrigger>
+                      {showOverviewTab && (
+                        <TabsTrigger value="overview" className="modern-tab-trigger !rounded-lg">
+                          Overview
+                        </TabsTrigger>
+                      )}
                       {showGalleryTab && (
                         <TabsTrigger value="gallery" className="modern-tab-trigger !rounded-lg">
                           Gallery
                         </TabsTrigger>
                       )}
-                      <TabsTrigger value="tech" className="modern-tab-trigger !rounded-lg">
-                        Tech Stack
-                      </TabsTrigger>
-                      <TabsTrigger value="challenges" className="modern-tab-trigger !rounded-lg">
-                        Challenges
-                      </TabsTrigger>
-                      <TabsTrigger value="timeline" className="modern-tab-trigger !rounded-lg">
-                        Timeline
-                      </TabsTrigger>
+                      {showTechStackTab && (
+                        <TabsTrigger value="tech" className="modern-tab-trigger !rounded-lg">
+                          Tech Stack
+                        </TabsTrigger>
+                      )}
+                      {showChallengesTab && (
+                        <TabsTrigger value="challenges" className="modern-tab-trigger !rounded-lg">
+                          Challenges
+                        </TabsTrigger>
+                      )}
+                      {showTimelineTab && (
+                        <TabsTrigger value="timeline" className="modern-tab-trigger !rounded-lg">
+                          Timeline
+                        </TabsTrigger>
+                      )}
                     </TabsList>
 
                     {/* Overview Tab */}
-                    <TabsContent value="overview" className="space-y-6">
-                      <Card className="bg-card/50 backdrop-blur-sm">
-                        <CardHeader>
-                          <CardTitle>About This Project</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {project.detailedDescription || project.description ? (
-                            <p className="text-muted-foreground leading-relaxed">
-                              {project.detailedDescription || project.description}
-                            </p>
-                          ) : (
-                            <EmptyState message="暂无项目详情" variant="modern" />
-                          )}
-                        </CardContent>
-                      </Card>
+                    {showOverviewTab && (
+                      <TabsContent value="overview" className="space-y-6">
+                        <Card className="bg-card/50 backdrop-blur-sm">
+                          <CardHeader>
+                            <CardTitle>About This Project</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            {project.detailedDescription || project.description ? (
+                              <p className="text-muted-foreground leading-relaxed">
+                                {project.detailedDescription || project.description}
+                              </p>
+                            ) : (
+                              <EmptyState message="暂无项目详情" variant="modern" />
+                            )}
+                          </CardContent>
+                        </Card>
 
-                      {features.length > 0 ? (
-                        <div>
-                          <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                            <Zap className="w-6 h-6 text-primary" />
-                            Key Features
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {features.map((feature, index) => (
-                              <Card
-                                key={index}
-                                className="border-2 hover:border-primary/50 transition-colors bg-card/50 backdrop-blur-sm"
-                              >
-                                <CardHeader>
-                                  <CardTitle className="flex items-center gap-2 text-lg">
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                      {feature.icon}
-                                    </div>
-                                    {feature.title}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <p className="text-sm text-muted-foreground">
-                                    {feature.description}
-                                  </p>
-                                </CardContent>
-                              </Card>
-                            ))}
+                        {features.length > 0 ? (
+                          <div>
+                            <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                              <Zap className="w-6 h-6 text-primary" />
+                              Key Features
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {features.map((feature, index) => (
+                                <Card
+                                  key={index}
+                                  className="border-2 hover:border-primary/50 transition-colors bg-card/50 backdrop-blur-sm"
+                                >
+                                  <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                        {feature.icon}
+                                      </div>
+                                      {feature.title}
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <p className="text-sm text-muted-foreground">
+                                      {feature.description}
+                                    </p>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                            <Zap className="w-6 h-6 text-primary" />
-                            Key Features
-                          </h3>
-                          <EmptyState message="暂无功能特性" variant="modern" />
-                        </div>
-                      )}
-                    </TabsContent>
+                        ) : (
+                          <div>
+                            <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                              <Zap className="w-6 h-6 text-primary" />
+                              Key Features
+                            </h3>
+                            <EmptyState message="暂无功能特性" variant="modern" />
+                          </div>
+                        )}
+                      </TabsContent>
+                    )}
 
                     {/* Gallery Tab */}
                     {showGalleryTab && (
@@ -478,56 +518,66 @@ function ModernProjectDetailDialog({
                     )}
 
                     {/* Tech Stack Tab */}
-                    <TabsContent value="tech" className="space-y-6">
-                      {techStack.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {techStack.map((stack, index) => (
-                            <Card key={index} className="bg-card/50 backdrop-blur-sm">
-                              <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                  <Code2 className="w-5 h-5 text-primary" />
-                                  {stack.category}
-                                </CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                  {stack.technologies.map((tech, techIndex) => (
-                                    <Badge key={techIndex} variant="outline" className="px-3 py-1">
-                                      {tech}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <EmptyState message="暂无技术栈信息" variant="modern" />
-                      )}
-                    </TabsContent>
+                    {showTechStackTab && (
+                      <TabsContent value="tech" className="space-y-6">
+                        {techStack.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {techStack.map((stack, index) => (
+                              <Card key={index} className="bg-card/50 backdrop-blur-sm">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2">
+                                    <Code2 className="w-5 h-5 text-primary" />
+                                    {stack.category}
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="flex flex-wrap gap-2">
+                                    {stack.technologies.map((tech, techIndex) => (
+                                      <Badge
+                                        key={techIndex}
+                                        variant="outline"
+                                        className="px-3 py-1"
+                                      >
+                                        {tech}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <EmptyState message="暂无技术栈信息" variant="modern" />
+                        )}
+                      </TabsContent>
+                    )}
 
                     {/* Challenges Tab */}
-                    <TabsContent value="challenges" className="space-y-6">
-                      {project.challenges && project.challenges.length > 0 ? (
-                        <ChallengeSection challenges={project.challenges} />
-                      ) : (
-                        <EmptyState message="暂无挑战与解决方案" variant="modern" />
-                      )}
-                    </TabsContent>
+                    {showChallengesTab && (
+                      <TabsContent value="challenges" className="space-y-6">
+                        {project.challenges && project.challenges.length > 0 ? (
+                          <ChallengeSection challenges={project.challenges} />
+                        ) : (
+                          <EmptyState message="暂无挑战与解决方案" variant="modern" />
+                        )}
+                      </TabsContent>
+                    )}
 
                     {/* Timeline Tab */}
-                    <TabsContent value="timeline" className="space-y-6">
-                      {timelineData.length > 0 ? (
-                        <div>
-                          <h3 className="text-lg font-semibold mb-3">项目时间线</h3>
-                          <TimelineErrorBoundary>
-                            <Timeline data={timelineData} />
-                          </TimelineErrorBoundary>
-                        </div>
-                      ) : (
-                        <EmptyState message="暂无时间线数据" variant="modern" />
-                      )}
-                    </TabsContent>
+                    {showTimelineTab && (
+                      <TabsContent value="timeline" className="space-y-6">
+                        {timelineData.length > 0 ? (
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">项目时间线</h3>
+                            <TimelineErrorBoundary>
+                              <Timeline data={timelineData} />
+                            </TimelineErrorBoundary>
+                          </div>
+                        ) : (
+                          <EmptyState message="暂无时间线数据" variant="modern" />
+                        )}
+                      </TabsContent>
+                    )}
                   </Tabs>
                 </div>
               </div>

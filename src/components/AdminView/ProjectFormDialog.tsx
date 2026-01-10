@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Layers, Image, Code2, Target, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,66 @@ interface ProjectFormDialogProps {
   onSave: () => void;
 }
 
+interface ModuleToggleProps {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+const ModuleToggle: React.FC<ModuleToggleProps> = ({
+  id,
+  icon,
+  label,
+  description,
+  checked,
+  onCheckedChange,
+}) => (
+  <div className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+    <div className="flex-shrink-0 w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+      {icon}
+    </div>
+    <div className="flex-1 min-w-0">
+      <Label htmlFor={id} className="text-sm font-medium cursor-pointer">
+        {label}
+      </Label>
+      <p className="text-xs text-muted-foreground truncate">{description}</p>
+    </div>
+    <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
+  </div>
+);
+
+interface FormSectionProps {
+  title: string;
+  description?: string;
+  enabled?: boolean;
+  children: React.ReactNode;
+}
+
+const FormSection: React.FC<FormSectionProps> = ({
+  title,
+  description,
+  enabled = true,
+  children,
+}) => (
+  <div
+    className={`space-y-3 p-4 rounded-lg border ${enabled ? 'bg-card' : 'bg-muted/30 opacity-60'}`}
+  >
+    <div className="flex items-center justify-between">
+      <div>
+        <h5 className="text-sm font-medium">{title}</h5>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+      </div>
+      {!enabled && (
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">已禁用</span>
+      )}
+    </div>
+    <div className={enabled ? '' : 'pointer-events-none'}>{children}</div>
+  </div>
+);
+
 export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   open,
   onOpenChange,
@@ -48,232 +108,301 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             {editingProject ? '修改项目信息' : '填写项目信息以添加到您的作品集'}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">项目标题 *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => onFormDataChange({ ...formData, title: e.target.value })}
-              placeholder="例如：E-Commerce Platform"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">项目描述 *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => onFormDataChange({ ...formData, description: e.target.value })}
-              placeholder="简要描述您的项目功能和特点"
-              rows={3}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">项目分类 *</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => onFormDataChange({ ...formData, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="web">Web Apps</SelectItem>
-                  <SelectItem value="mobile">Mobile</SelectItem>
-                  <SelectItem value="tool">Tools</SelectItem>
-                  <SelectItem value="analytics">Analytics</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">项目状态 *</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'live' | 'development' | 'archived') =>
-                  onFormDataChange({ ...formData, status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="live">Live</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="liveUrl">在线链接 *</Label>
-            <Input
-              id="liveUrl"
-              value={formData.liveUrl}
-              onChange={(e) => onFormDataChange({ ...formData, liveUrl: e.target.value })}
-              placeholder="https://example.com"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="githubUrl">GitHub 链接（可选）</Label>
-            <Input
-              id="githubUrl"
-              value={formData.githubUrl}
-              onChange={(e) => onFormDataChange({ ...formData, githubUrl: e.target.value })}
-              placeholder="https://github.com/user/repo"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="image">卡片封面图</Label>
-            <Input
-              id="image"
-              value={formData.image}
-              onChange={(e) => onFormDataChange({ ...formData, image: e.target.value })}
-              placeholder="https://example.com/cover.jpg"
-            />
-            <p className="text-xs text-muted-foreground">
-              显示在项目列表卡片上的封面图片，建议尺寸 800×600
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tags">技术标签 *</Label>
-            <Input
-              id="tags"
-              value={formData.tags}
-              onChange={(e) => onFormDataChange({ ...formData, tags: e.target.value })}
-              placeholder="用逗号分隔，例如：React, Node.js, MongoDB"
-            />
-          </div>
 
-          <div className="border-t pt-4 mt-4">
-            <h4 className="text-sm font-semibold mb-3 text-muted-foreground">详情页内容（可选）</h4>
+        <div className="space-y-6 py-4">
+          {/* 基本信息 */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="w-1 h-4 bg-primary rounded-full" />
+              基本信息
+            </h4>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">项目标题 *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => onFormDataChange({ ...formData, title: e.target.value })}
+                placeholder="例如：E-Commerce Platform"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">项目描述 *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => onFormDataChange({ ...formData, description: e.target.value })}
+                placeholder="简要描述您的项目功能和特点"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="detailedDescription">详细描述（支持 Markdown）</Label>
-                <Textarea
-                  id="detailedDescription"
-                  value={formData.detailedDescription}
-                  onChange={(e) =>
-                    onFormDataChange({ ...formData, detailedDescription: e.target.value })
+                <Label htmlFor="category">项目分类 *</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => onFormDataChange({ ...formData, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="web">Web Apps</SelectItem>
+                    <SelectItem value="mobile">Mobile</SelectItem>
+                    <SelectItem value="tool">Tools</SelectItem>
+                    <SelectItem value="analytics">Analytics</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">项目状态 *</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: 'live' | 'development' | 'archived') =>
+                    onFormDataChange({ ...formData, status: value })
                   }
-                  placeholder="使用 Markdown 格式编写详细介绍，支持标题、列表、链接等"
-                  rows={5}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="live">Live</SelectItem>
+                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="liveUrl">在线链接 *</Label>
+                <Input
+                  id="liveUrl"
+                  value={formData.liveUrl}
+                  onChange={(e) => onFormDataChange({ ...formData, liveUrl: e.target.value })}
+                  placeholder="https://example.com"
                 />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="screenshots">详情页截图（Gallery）</Label>
+                <Label htmlFor="githubUrl">GitHub 链接</Label>
+                <Input
+                  id="githubUrl"
+                  value={formData.githubUrl}
+                  onChange={(e) => onFormDataChange({ ...formData, githubUrl: e.target.value })}
+                  placeholder="https://github.com/user/repo"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image">卡片封面图</Label>
+              <Input
+                id="image"
+                value={formData.image}
+                onChange={(e) => onFormDataChange({ ...formData, image: e.target.value })}
+                placeholder="https://example.com/cover.jpg"
+              />
+              <p className="text-xs text-muted-foreground">
+                显示在项目列表卡片上的封面图片，建议尺寸 800×600
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tags">技术标签 *</Label>
+              <Input
+                id="tags"
+                value={formData.tags}
+                onChange={(e) => onFormDataChange({ ...formData, tags: e.target.value })}
+                placeholder="用逗号分隔，例如：React, Node.js, MongoDB"
+              />
+            </div>
+          </div>
+
+          {/* 详情页模块配置 */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="w-1 h-4 bg-primary rounded-full" />
+              详情页模块配置
+            </h4>
+            <p className="text-xs text-muted-foreground -mt-2">选择在项目详情页中显示哪些模块</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <ModuleToggle
+                id="showOverview"
+                icon={<Layers className="w-4 h-4" />}
+                label="概览"
+                description="项目介绍与核心功能"
+                checked={formData.showOverview}
+                onCheckedChange={(checked) =>
+                  onFormDataChange({ ...formData, showOverview: checked })
+                }
+              />
+              <ModuleToggle
+                id="showGallery"
+                icon={<Image className="w-4 h-4" />}
+                label="Gallery"
+                description="项目截图画廊 (Modern)"
+                checked={formData.showGallery}
+                onCheckedChange={(checked) =>
+                  onFormDataChange({ ...formData, showGallery: checked })
+                }
+              />
+              <ModuleToggle
+                id="showTechStack"
+                icon={<Code2 className="w-4 h-4" />}
+                label="技术栈"
+                description="使用的技术和工具"
+                checked={formData.showTechStack}
+                onCheckedChange={(checked) =>
+                  onFormDataChange({ ...formData, showTechStack: checked })
+                }
+              />
+              <ModuleToggle
+                id="showChallenges"
+                icon={<Target className="w-4 h-4" />}
+                label="挑战与方案"
+                description="开发中遇到的挑战"
+                checked={formData.showChallenges}
+                onCheckedChange={(checked) =>
+                  onFormDataChange({ ...formData, showChallenges: checked })
+                }
+              />
+              <ModuleToggle
+                id="showTimeline"
+                icon={<Calendar className="w-4 h-4" />}
+                label="时间线"
+                description="项目开发历程"
+                checked={formData.showTimeline}
+                onCheckedChange={(checked) =>
+                  onFormDataChange({ ...formData, showTimeline: checked })
+                }
+              />
+            </div>
+          </div>
+
+          {/* 详情页内容 */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <div className="w-1 h-4 bg-primary rounded-full" />
+              详情页内容
+            </h4>
+
+            <FormSection
+              title="概览内容"
+              description="详细描述和核心功能"
+              enabled={formData.showOverview}
+            >
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="detailedDescription">详细描述</Label>
+                  <Textarea
+                    id="detailedDescription"
+                    value={formData.detailedDescription}
+                    onChange={(e) =>
+                      onFormDataChange({ ...formData, detailedDescription: e.target.value })
+                    }
+                    placeholder="使用 Markdown 格式编写详细介绍"
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="features">核心功能</Label>
+                  <Textarea
+                    id="features"
+                    value={formData.features}
+                    onChange={(e) => onFormDataChange({ ...formData, features: e.target.value })}
+                    placeholder="用逗号分隔，例如：用户认证, 实时通知, 数据可视化"
+                    rows={2}
+                  />
+                </div>
+              </div>
+            </FormSection>
+
+            <FormSection
+              title="Gallery 截图"
+              description="详情页展示的项目截图"
+              enabled={formData.showGallery}
+            >
+              <div className="space-y-2">
+                <Label htmlFor="screenshots">截图 URL</Label>
                 <Textarea
                   id="screenshots"
                   value={formData.screenshots}
                   onChange={(e) => onFormDataChange({ ...formData, screenshots: e.target.value })}
-                  placeholder="https://example.com/screenshot1.jpg, https://example.com/screenshot2.jpg"
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">
-                  在详情页 Gallery 标签中展示的多张截图，用逗号分隔多个 URL
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-muted/50">
-                <div>
-                  <Label htmlFor="showGallery" className="text-sm font-medium">
-                    显示 Gallery 标签
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    关闭后详情页将隐藏图片画廊（仅 Modern 主题）
-                  </p>
-                </div>
-                <Switch
-                  id="showGallery"
-                  checked={formData.showGallery}
-                  onCheckedChange={(checked) => onFormDataChange({ ...formData, showGallery: checked })}
+                  placeholder="用逗号分隔多个 URL"
+                  rows={2}
                 />
               </div>
+            </FormSection>
 
+            <FormSection
+              title="开发挑战"
+              description="项目中遇到的技术挑战"
+              enabled={formData.showChallenges}
+            >
               <div className="space-y-2">
-                <Label htmlFor="features">核心功能</Label>
-                <Textarea
-                  id="features"
-                  value={formData.features}
-                  onChange={(e) => onFormDataChange({ ...formData, features: e.target.value })}
-                  placeholder="用逗号分隔，例如：用户认证, 实时通知, 数据可视化"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="challenges">开发挑战</Label>
+                <Label htmlFor="challenges">挑战内容 (JSON)</Label>
                 <Textarea
                   id="challenges"
                   value={formData.challenges}
                   onChange={(e) => onFormDataChange({ ...formData, challenges: e.target.value })}
-                  placeholder="用逗号分隔，例如：性能优化, 跨浏览器兼容, 复杂状态管理"
+                  placeholder='[{"title": "性能优化", "description": "...", "solution": "..."}]'
                   rows={3}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t pt-4 mt-4">
-            <h4 className="text-sm font-semibold mb-3 text-muted-foreground">项目时间线（可选）</h4>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">开始日期</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => onFormDataChange({ ...formData, startDate: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="duration">开发周期</Label>
-                  <Input
-                    id="duration"
-                    value={formData.duration}
-                    onChange={(e) => onFormDataChange({ ...formData, duration: e.target.value })}
-                    placeholder="例如：3 个月"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="timelineData">时间线事件（JSON 格式）</Label>
-                <Textarea
-                  id="timelineData"
-                  value={formData.timelineData}
-                  onChange={(e) => onFormDataChange({ ...formData, timelineData: e.target.value })}
-                  placeholder={`JSON 格式示例：
-[
-  {
-    "id": "1",
-    "date": "2024-01-15",
-    "title": "项目启动",
-    "description": "完成需求分析和技术选型",
-    "type": "milestone"
-  },
-  {
-    "id": "2",
-    "date": "2024-03-20",
-    "title": "核心功能完成",
-    "description": "实现用户认证和数据管理",
-    "type": "feature"
-  }
-]`}
-                  rows={8}
                   className="font-mono text-xs"
                 />
-                <p className="text-xs text-muted-foreground">
-                  事件类型：milestone（里程碑）、feature（新功能）、bugfix（修复）、release（发布）
-                </p>
               </div>
-            </div>
+            </FormSection>
+
+            <FormSection
+              title="项目时间线"
+              description="开发历程和里程碑"
+              enabled={formData.showTimeline}
+            >
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">开始日期</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => onFormDataChange({ ...formData, startDate: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="duration">开发周期</Label>
+                    <Input
+                      id="duration"
+                      value={formData.duration}
+                      onChange={(e) => onFormDataChange({ ...formData, duration: e.target.value })}
+                      placeholder="例如：3 个月"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="timelineData">时间线事件 (JSON)</Label>
+                  <Textarea
+                    id="timelineData"
+                    value={formData.timelineData}
+                    onChange={(e) =>
+                      onFormDataChange({ ...formData, timelineData: e.target.value })
+                    }
+                    placeholder='[{"id": "1", "date": "2024-01-15", "title": "项目启动", "description": "...", "type": "milestone"}]'
+                    rows={4}
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    类型：milestone / feature / bugfix / release
+                  </p>
+                </div>
+              </div>
+            </FormSection>
           </div>
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             <X className="h-4 w-4 mr-2" />

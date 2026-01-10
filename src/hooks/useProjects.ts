@@ -28,6 +28,10 @@ const emptyFormData: ProjectFormData = {
   duration: '',
   timelineData: '',
   showGallery: true,
+  showOverview: true,
+  showTechStack: true,
+  showChallenges: true,
+  showTimeline: true,
 };
 
 export interface UseProjectsReturn {
@@ -191,6 +195,10 @@ export function useProjects(): UseProjectsReturn {
       duration: project.duration || '',
       timelineData: timelineJson,
       showGallery: project.showGallery !== false,
+      showOverview: project.showOverview !== false,
+      showTechStack: project.showTechStack !== false,
+      showChallenges: project.showChallenges !== false,
+      showTimeline: project.showTimeline !== false,
     });
     setIsDialogOpen(true);
   }, []);
@@ -201,9 +209,18 @@ export function useProjects(): UseProjectsReturn {
       return false;
     }
 
-    const tagsArray = formData.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
-    const screenshotsArray = formData.screenshots.split(',').map((url) => url.trim()).filter((url) => url);
-    const featuresArray = formData.features.split(',').map((f) => f.trim()).filter((f) => f);
+    const tagsArray = formData.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter((tag) => tag);
+    const screenshotsArray = formData.screenshots
+      .split(',')
+      .map((url) => url.trim())
+      .filter((url) => url);
+    const featuresArray = formData.features
+      .split(',')
+      .map((f) => f.trim())
+      .filter((f) => f);
 
     let timelineArray: TimelineEvent[] | undefined;
     if (formData.timelineData.trim()) {
@@ -246,6 +263,10 @@ export function useProjects(): UseProjectsReturn {
               duration: formData.duration || undefined,
               timeline: timelineArray,
               showGallery: formData.showGallery,
+              showOverview: formData.showOverview,
+              showTechStack: formData.showTechStack,
+              showChallenges: formData.showChallenges,
+              showTimeline: formData.showTimeline,
             }
           : p
       );
@@ -274,6 +295,10 @@ export function useProjects(): UseProjectsReturn {
         duration: formData.duration || undefined,
         timeline: timelineArray,
         showGallery: formData.showGallery,
+        showOverview: formData.showOverview,
+        showTechStack: formData.showTechStack,
+        showChallenges: formData.showChallenges,
+        showTimeline: formData.showTimeline,
       };
       const updatedProjects = [...projects, newProject];
       setProjects(updatedProjects);
