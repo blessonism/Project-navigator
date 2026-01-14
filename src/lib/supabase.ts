@@ -38,6 +38,7 @@ export interface SupabaseProject {
   category: string;
   image?: string;
   status: 'live' | 'development' | 'archived';
+  order?: number;
   detailed_description?: string;
   screenshots?: string[];
   tech_stack?: any[];

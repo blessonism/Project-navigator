@@ -29,6 +29,7 @@ export interface Project {
   category: string;
   image?: string;
   status: 'live' | 'development' | 'archived';
+  order?: number;
 
   detailedDescription?: string;
   screenshots?: string[];

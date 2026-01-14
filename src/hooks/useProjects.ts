@@ -35,6 +35,19 @@ const emptyFormData: ProjectFormData = {
   showTimeline: true,
 };
 
+const normalizeProjectOrder = (items: Project[]): Project[] =>
+  items.map((project, index) => ({ ...project, order: index }));
+
+const arrayMove = <T,>(items: T[], fromIndex: number, toIndex: number): T[] => {
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  if (moved === undefined) {
+    return next;
+  }
+  next.splice(toIndex, 0, moved);
+  return next;
+};
+
 export interface UseProjectsReturn {
   projects: Project[];
   filteredProjects: Project[];
@@ -59,6 +72,7 @@ export interface UseProjectsReturn {
   setDeleteProjectId: (id: string | null) => void;
   handleDeleteProject: (id: string) => void;
   confirmDelete: () => void;
+  reorderProjects: (activeId: string, overId: string) => void;
 
   selectedProject: Project | null;
   setSelectedProject: (project: Project | null) => void;
@@ -108,17 +122,14 @@ export function useProjects(): UseProjectsReturn {
       try {
         const projectsData = await loadProjects();
 
-        if (projectsData.length > 0) {
-          setProjects(projectsData);
-        } else {
-          setProjects(defaultProjects);
-        }
+        const nextProjects = projectsData.length > 0 ? projectsData : defaultProjects;
+        setProjects(normalizeProjectOrder(nextProjects));
 
         const settings = await loadSettings();
         setShowImagesState(settings.showImages);
       } catch (error) {
         logger.error('加载数据失败:', error);
-        setProjects(defaultProjects);
+        setProjects(normalizeProjectOrder(defaultProjects));
       } finally {
         setIsProjectsLoading(false);
         setIsInitialized(true);
@@ -271,8 +282,9 @@ export function useProjects(): UseProjectsReturn {
             }
           : p
       );
-      setProjects(updatedProjects);
-      void persistProjects(updatedProjects);
+      const normalizedProjects = normalizeProjectOrder(updatedProjects);
+      setProjects(normalizedProjects);
+      void persistProjects(normalizedProjects);
       toast({
         title: '项目已更新',
         description: '项目信息已保存',
@@ -288,6 +300,7 @@ export function useProjects(): UseProjectsReturn {
         category: formData.category,
         image: formData.image || undefined,
         status: formData.status,
+        order: projects.length,
         detailedDescription: formData.detailedDescription || undefined,
         screenshots: screenshotsArray.length > 0 ? screenshotsArray : undefined,
         features: featuresArray.length > 0 ? featuresArray : undefined,
@@ -301,7 +314,7 @@ export function useProjects(): UseProjectsReturn {
         showChallenges: formData.showChallenges,
         showTimeline: formData.showTimeline,
       };
-      const updatedProjects = [...projects, newProject];
+      const updatedProjects = normalizeProjectOrder([...projects, newProject]);
       setProjects(updatedProjects);
       void persistProjects(updatedProjects);
       toast({
@@ -321,7 +334,9 @@ export function useProjects(): UseProjectsReturn {
   const confirmDelete = useCallback(() => {
     if (deleteProjectId) {
       const targetProject = projects.find((project) => project.id === deleteProjectId);
-      const updatedProjects = projects.filter((p) => p.id !== deleteProjectId);
+      const updatedProjects = normalizeProjectOrder(
+        projects.filter((p) => p.id !== deleteProjectId)
+      );
       setProjects(updatedProjects);
       void persistProjects(updatedProjects);
       toast({
@@ -331,6 +346,27 @@ export function useProjects(): UseProjectsReturn {
       setDeleteProjectId(null);
     }
   }, [deleteProjectId, projects, persistProjects, toast]);
+
+  const reorderProjects = useCallback(
+    (activeId: string, overId: string) => {
+      if (activeId === overId) return;
+
+      setProjects((currentProjects) => {
+        const activeIndex = currentProjects.findIndex((project) => project.id === activeId);
+        const overIndex = currentProjects.findIndex((project) => project.id === overId);
+
+        if (activeIndex === -1 || overIndex === -1) {
+          return currentProjects;
+        }
+
+        const reorderedProjects = arrayMove(currentProjects, activeIndex, overIndex);
+        const normalizedProjects = normalizeProjectOrder(reorderedProjects);
+        void persistProjects(normalizedProjects);
+        return normalizedProjects;
+      });
+    },
+    [persistProjects]
+  );
 
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
@@ -369,6 +405,7 @@ export function useProjects(): UseProjectsReturn {
     setDeleteProjectId,
     handleDeleteProject,
     confirmDelete,
+    reorderProjects,
 
     selectedProject,
     setSelectedProject,

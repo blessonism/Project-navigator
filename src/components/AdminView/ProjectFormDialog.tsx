@@ -1,10 +1,14 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { X, Save, Layers, Image, Code2, Target, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Project, ProjectFormData } from '@/types/project';
+import { ImageUpload } from './ImageUpload';
 
 interface ProjectFormDialogProps {
   open: boolean;
@@ -199,11 +204,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="image">卡片封面图</Label>
-              <Input
-                id="image"
+              <ImageUpload
                 value={formData.image}
-                onChange={(e) => onFormDataChange({ ...formData, image: e.target.value })}
-                placeholder="https://example.com/cover.jpg"
+                onChange={(value) => onFormDataChange({ ...formData, image: value })}
+                className="w-full"
               />
               <p className="text-xs text-muted-foreground">
                 显示在项目列表卡片上的封面图片，建议尺寸 800×600
@@ -296,17 +300,34 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               enabled={formData.showOverview}
             >
               <div className="space-y-3">
-                <div className="space-y-2">
+                <div className="space-y-2 min-h-[200px]">
                   <Label htmlFor="detailedDescription">详细描述</Label>
-                  <Textarea
-                    id="detailedDescription"
-                    value={formData.detailedDescription}
-                    onChange={(e) =>
-                      onFormDataChange({ ...formData, detailedDescription: e.target.value })
-                    }
-                    placeholder="使用 Markdown 格式编写详细介绍"
-                    rows={4}
-                  />
+                  <Tabs defaultValue="edit" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-2">
+                      <TabsTrigger value="edit">编辑</TabsTrigger>
+                      <TabsTrigger value="preview">预览</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="edit">
+                      <Textarea
+                        id="detailedDescription"
+                        value={formData.detailedDescription}
+                        onChange={(e) =>
+                          onFormDataChange({ ...formData, detailedDescription: e.target.value })
+                        }
+                        placeholder="使用 Markdown 格式编写详细介绍"
+                        rows={8}
+                      />
+                    </TabsContent>
+                    <TabsContent value="preview">
+                      <ScrollArea className="h-[200px] w-full rounded-md border p-4 bg-muted/20">
+                        <div className="prose dark:prose-invert prose-sm max-w-none">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {formData.detailedDescription || '*(暂无内容)*'}
+                          </ReactMarkdown>
+                        </div>
+                      </ScrollArea>
+                    </TabsContent>
+                  </Tabs>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="features">核心功能</Label>

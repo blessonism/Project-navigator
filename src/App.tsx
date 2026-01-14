@@ -28,6 +28,7 @@ const App: React.FC = () => {
         onDeleteProjectIdChange={projectsHook.setDeleteProjectId}
         onDeleteProject={projectsHook.handleDeleteProject}
         onConfirmDelete={projectsHook.confirmDelete}
+        onReorder={projectsHook.reorderProjects}
         onBackToPublic={() => auth.setIsAdminMode(false)}
         onLogout={auth.handleLogout}
       />

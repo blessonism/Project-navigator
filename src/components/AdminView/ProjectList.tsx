@@ -1,5 +1,21 @@
 import React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Pencil, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +28,113 @@ interface ProjectListProps {
   getStatusColor: (status: string) => string;
   onEdit: (project: Project) => void;
   onDelete: (id: string) => void;
+  onReorder?: (activeId: string, overId: string) => void;
 }
+
+interface SortableProjectCardProps {
+  project: Project;
+  getStatusColor: (status: string) => string;
+  onEdit: (project: Project) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableProjectCard: React.FC<SortableProjectCardProps> = ({
+  project,
+  getStatusColor,
+  onEdit,
+  onDelete,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: project.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label={`拖拽排序：${project.title}`}
+        className="absolute left-2 top-6 z-10 cursor-move opacity-50 sm:opacity-0 sm:group-hover:opacity-50 focus:opacity-100 hover:!opacity-100 transition-opacity p-1 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+      >
+        <GripVertical className="h-5 w-5 text-muted-foreground" />
+      </button>
+      <Card className="pl-8 transition-all hover:shadow-md">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <CardTitle>{project.title}</CardTitle>
+                <Badge variant="outline" className={getStatusColor(project.status)}>
+                  {project.status}
+                </Badge>
+              </div>
+              <CardDescription>{project.description}</CardDescription>
+            </div>
+            <div className="flex gap-2 ml-4">
+              <Button variant="outline" size="sm" onClick={() => onEdit(project)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(project.id)}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {project.tags.map((tag) => (
+                <Badge key={tag} variant="secondary">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>分类: {project.category}</span>
+              <span>•</span>
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary"
+              >
+                在线链接
+              </a>
+              {project.githubUrl && (
+                <>
+                  <span>•</span>
+                  <a
+                    href={project.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary"
+                  >
+                    GitHub
+                  </a>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 export const ProjectList: React.FC<ProjectListProps> = ({
   projects,
@@ -20,7 +142,22 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   getStatusColor,
   onEdit,
   onDelete,
+  onReorder,
 }) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id && onReorder) {
+      onReorder(active.id as string, over.id as string);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -62,73 +199,24 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      {projects.map((project) => (
-        <Card key={project.id} className="group">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <CardTitle>{project.title}</CardTitle>
-                  <Badge variant="outline" className={getStatusColor(project.status)}>
-                    {project.status}
-                  </Badge>
-                </div>
-                <CardDescription>{project.description}</CardDescription>
-              </div>
-              <div className="flex gap-2 ml-4">
-                <Button variant="outline" size="sm" onClick={() => onEdit(project)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete(project.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>分类: {project.category}</span>
-                <span>•</span>
-                <a
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary"
-                >
-                  在线链接
-                </a>
-                {project.githubUrl && (
-                  <>
-                    <span>•</span>
-                    <a
-                      href={project.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-primary"
-                    >
-                      GitHub
-                    </a>
-                  </>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={projects.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-4">
+          {projects.map((project) => (
+            <SortableProjectCard
+              key={project.id}
+              project={project}
+              getStatusColor={getStatusColor}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 };

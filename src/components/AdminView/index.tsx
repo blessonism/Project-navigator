@@ -29,6 +29,8 @@ interface AdminViewProps {
   onDeleteProject: (id: string) => void;
   onConfirmDelete: () => void;
 
+  onReorder?: (activeId: string, overId: string) => void;
+
   onBackToPublic: () => void;
   onLogout: () => void;
 }
@@ -53,6 +55,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onDeleteProjectIdChange,
   onDeleteProject,
   onConfirmDelete,
+
+  onReorder,
 
   onBackToPublic,
   onLogout,
@@ -97,6 +101,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             getStatusColor={getStatusColor}
             onEdit={onEditProject}
             onDelete={onDeleteProject}
+            onReorder={onReorder}
           />
         </div>
       </main>

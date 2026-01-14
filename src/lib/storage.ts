@@ -29,6 +29,7 @@ class HybridStorage implements StorageService {
       category: project.category,
       image: project.image,
       status: project.status,
+      order: project.order ?? 0,
       detailed_description: project.detailedDescription,
       screenshots: project.screenshots || [],
       tech_stack: project.techStack || [],
@@ -57,6 +58,7 @@ class HybridStorage implements StorageService {
       category: supabaseProject.category,
       image: supabaseProject.image,
       status: supabaseProject.status,
+      order: supabaseProject.order,
       detailedDescription: supabaseProject.detailed_description,
       screenshots: supabaseProject.screenshots,
       techStack: supabaseProject.tech_stack,
@@ -121,7 +123,7 @@ class HybridStorage implements StorageService {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('order', { ascending: true });
 
     if (error) throw error;
 
