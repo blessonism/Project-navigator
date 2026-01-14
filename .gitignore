@@ -28,3 +28,6 @@ dist-ssr
 .env.local
 .env.*.local
 .serena
+
+# AI agent knowledge base (local only)
+AGENTS.md
