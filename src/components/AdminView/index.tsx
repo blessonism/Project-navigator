@@ -64,33 +64,36 @@ export const AdminView: React.FC<AdminViewProps> = ({
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={onBackToPublic}>
+        <div className="container mx-auto py-4 sm:py-6 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <Button variant="ghost" size="sm" onClick={onBackToPublic} className="w-full sm:w-auto justify-start">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                返回展示页面
+                <span className="sm:inline">返回</span>
+                <span className="hidden sm:inline">展示页面</span>
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">项目管理</h1>
-                <p className="text-muted-foreground mt-1">管理您的 {projects.length} 个项目</p>
+                <h1 className="text-xl sm:text-3xl font-bold text-foreground">项目管理</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">{projects.length} 个项目</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={onAddProject}>
-                <Plus className="h-4 w-4 mr-2" />
-                添加项目
+            <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
+              <Button onClick={onAddProject} className="flex-1 sm:flex-none">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">添加项目</span>
+                <span className="sm:hidden ml-2">添加</span>
               </Button>
-              <Button variant="outline" onClick={onLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                退出登录
+              <Button variant="outline" onClick={onLogout} className="flex-1 sm:flex-none">
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">退出登录</span>
+                <span className="sm:hidden ml-2">退出</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto py-8">
+      <main className="container mx-auto py-4 sm:py-8 px-4 sm:px-6">
         <SettingsCard showImages={showImages} onShowImagesChange={onShowImagesChange} />
 
         <div className="space-y-4">

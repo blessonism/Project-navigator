@@ -106,7 +106,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingProject ? '编辑项目' : '添加新项目'}</DialogTitle>
           <DialogDescription>
@@ -143,7 +143,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">项目分类 *</Label>
                 <Select
@@ -181,7 +181,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="liveUrl">在线链接 *</Label>
                 <Input
@@ -233,7 +233,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             </h4>
             <p className="text-xs text-muted-foreground -mt-2">选择在项目详情页中显示哪些模块</p>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <ModuleToggle
                 id="showOverview"
                 icon={<Layers className="w-4 h-4" />}
@@ -383,7 +383,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               enabled={formData.showTimeline}
             >
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="startDate">开始日期</Label>
                     <Input

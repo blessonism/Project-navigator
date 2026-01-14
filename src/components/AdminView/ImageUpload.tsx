@@ -101,7 +101,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   if (value) {
     return (
       <div className={cn("relative rounded-lg overflow-hidden border bg-muted/30 group", className)}>
-        <img src={value} alt="Project cover" className="w-full h-48 object-cover transition-opacity group-hover:opacity-90" />
+        <img src={value} alt="Project cover" className="w-full h-32 sm:h-48 object-cover transition-opacity group-hover:opacity-90" />
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <Button
             variant="destructive"
@@ -155,7 +155,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       ) : (
         <div
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
+            "border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors cursor-pointer",
             isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
             isUploading && "pointer-events-none opacity-60"
           )}

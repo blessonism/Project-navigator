@@ -31,3 +31,4 @@ dist-ssr
 
 # AI agent knowledge base (local only)
 AGENTS.md
+.claude
