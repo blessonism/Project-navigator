@@ -1,10 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from './logger';
 
-// Supabase 配置
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// 检查是否为有效的 Supabase 配置（排除占位符值）
 const isValidConfig = (url?: string, key?: string) => {
   if (!url || !key) return false;
   if (url.includes('your_supabase') || key.includes('your_supabase')) return false;
@@ -15,7 +14,7 @@ const isValidConfig = (url?: string, key?: string) => {
 const hasValidConfig = isValidConfig(supabaseUrl, supabaseAnonKey);
 
 if (!hasValidConfig) {
-  console.warn('Supabase 配置缺失或无效，将使用 localStorage 作为后备存储');
+  logger.warn('Supabase 配置缺失或无效，将使用 localStorage 作为后备存储');
 }
 
 // 创建 Supabase 客户端（仅在配置有效时）

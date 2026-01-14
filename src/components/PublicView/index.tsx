@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Header } from './Header';
 import { ProjectGrid } from './ProjectGrid';
 import { Footer } from './Footer';
 import { AuthDialog } from '@/components/AuthDialog';
-import ProjectDetailDialog from '@/components/ProjectDetailDialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Project } from '@/types/project';
+
+const ProjectDetailDialog = lazy(() => import('@/components/ProjectDetailDialog'));
+
+const DialogSkeleton = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+    <div className="w-full max-w-5xl mx-4 bg-background rounded-lg shadow-lg overflow-hidden">
+      <Skeleton className="h-[400px] w-full" />
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </div>
+  </div>
+);
 
 interface PublicViewProps {
   projects: Project[];
@@ -97,11 +112,13 @@ export const PublicView: React.FC<PublicViewProps> = ({
       />
 
       {selectedProject && (
-        <ProjectDetailDialog
-          project={selectedProject}
-          open={isDetailDialogOpen}
-          onOpenChange={onDetailDialogChange}
-        />
+        <Suspense fallback={<DialogSkeleton />}>
+          <ProjectDetailDialog
+            project={selectedProject}
+            open={isDetailDialogOpen}
+            onOpenChange={onDetailDialogChange}
+          />
+        </Suspense>
       )}
 
       <Toaster />

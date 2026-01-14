@@ -8,6 +8,7 @@ import {
   loadSettings,
   saveSetting,
 } from '@/lib/storage';
+import { logger } from '@/lib/logger';
 import { defaultProjects } from '@/constants/defaultProjects';
 import type { Project, ProjectFormData, Challenge, TimelineEvent } from '@/types/project';
 
@@ -116,7 +117,7 @@ export function useProjects(): UseProjectsReturn {
         const settings = await loadSettings();
         setShowImagesState(settings.showImages);
       } catch (error) {
-        console.error('加载数据失败:', error);
+        logger.error('加载数据失败:', error);
         setProjects(defaultProjects);
       } finally {
         setIsProjectsLoading(false);
@@ -131,7 +132,7 @@ export function useProjects(): UseProjectsReturn {
     try {
       await saveProjects(nextProjects);
     } catch (error) {
-      console.error('保存项目数据失败:', error);
+      logger.error('保存项目数据失败:', error);
     }
   }, []);
 
@@ -154,7 +155,7 @@ export function useProjects(): UseProjectsReturn {
           description: '图片显示设置已同步到云端',
         });
       } catch (error) {
-        console.error('保存图片显示设置失败:', error);
+        logger.error('保存图片显示设置失败:', error);
         toast({
           title: '保存失败',
           description: '设置已保存到本地，但云端同步失败',

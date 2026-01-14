@@ -94,8 +94,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
           <CardContent>
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary">
+                {project.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">
                     {tag}
                   </Badge>
                 ))}

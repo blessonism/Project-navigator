@@ -2,7 +2,14 @@ import React from 'react';
 import { Search, ExternalLink, Github, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { categories } from '@/constants/defaultProjects';
@@ -61,12 +68,21 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
   }
 
   return (
-    <Tabs defaultValue="all" className="w-full" onValueChange={onCategoryChange} value={selectedCategory}>
+    <Tabs
+      defaultValue="all"
+      className="w-full"
+      onValueChange={onCategoryChange}
+      value={selectedCategory}
+    >
       <TabsList className="grid w-full max-w-2xl grid-cols-5 mb-8">
         {categories.map((category) => {
           const Icon = category.icon;
           return (
-            <TabsTrigger key={category.value} value={category.value} className="flex items-center gap-2">
+            <TabsTrigger
+              key={category.value}
+              value={category.value}
+              className="flex items-center gap-2"
+            >
               <Icon className="h-4 w-4" />
               <span className="hidden sm:inline">{category.label}</span>
             </TabsTrigger>
@@ -96,6 +112,7 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                       <img
                         src={project.image}
                         alt={project.title}
+                        loading="lazy"
                         className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -113,13 +130,15 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                         {project.status}
                       </Badge>
                     </div>
-                    <CardDescription className="line-clamp-3">{project.description}</CardDescription>
+                    <CardDescription className="line-clamp-3">
+                      {project.description}
+                    </CardDescription>
                   </CardHeader>
 
                   <CardContent className="flex-grow">
                     <div className="flex flex-wrap gap-2">
-                      {project.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                      {project.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
                           {tag}
                         </Badge>
                       ))}

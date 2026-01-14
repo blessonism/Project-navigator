@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured, SupabaseProject } from './supabase';
 import { safeLocalStorage } from './storageDetector';
+import { logger } from './logger';
 import type { Project, TechStackItem, Challenge, TimelineEvent } from '@/types/project';
 
 export type { Project, TechStackItem, Challenge, TimelineEvent };
@@ -82,7 +83,7 @@ class HybridStorage implements StorageService {
       if (error) throw error;
       return (data?.length || 0) > 0;
     } catch (error) {
-      console.warn('检查云端数据失败:', error);
+      logger.warn('检查云端数据失败:', error);
       return false;
     }
   }
@@ -93,7 +94,7 @@ class HybridStorage implements StorageService {
       const saved = safeLocalStorage.getItem(this.STORAGE_KEY);
       return saved ? JSON.parse(saved) : [];
     } catch (error) {
-      console.warn('从 localStorage 加载数据失败:', error);
+      logger.warn('从 localStorage 加载数据失败:', error);
       return [];
     }
   }
@@ -107,7 +108,7 @@ class HybridStorage implements StorageService {
     try {
       safeLocalStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
     } catch (error) {
-      console.warn('保存到 localStorage 失败:', error);
+      logger.warn('保存到 localStorage 失败:', error);
     }
   }
 
@@ -161,7 +162,7 @@ class HybridStorage implements StorageService {
         this.saveToLocalStorage(projects);
         return projects;
       } catch (error) {
-        console.warn('从 Supabase 加载失败，降级到 localStorage:', error);
+        logger.warn('从 Supabase 加载失败，降级到 localStorage:', error);
         return this.loadFromLocalStorage();
       }
     }
@@ -179,9 +180,9 @@ class HybridStorage implements StorageService {
     if (isSupabaseConfigured()) {
       try {
         await this.saveToSupabase(projects);
-        console.log('数据已同步到 Supabase');
+        logger.log('数据已同步到 Supabase');
       } catch (error) {
-        console.warn('同步到 Supabase 失败，数据已保存到本地:', error);
+        logger.warn('同步到 Supabase 失败，数据已保存到本地:', error);
         // 不抛出错误，因为本地保存已成功
       }
     }
@@ -202,24 +203,23 @@ class HybridStorage implements StorageService {
     try {
       // 检查是否已有云端数据
       if (await this.hasCloudData()) {
-        console.log('云端已有数据，跳过迁移');
+        logger.log('云端已有数据，跳过迁移');
         safeLocalStorage.setItem(this.MIGRATION_KEY, 'true');
         return;
       }
 
-      // 获取本地数据
       const localProjects = this.loadFromLocalStorage();
 
       if (localProjects.length > 0) {
-        console.log(`开始迁移 ${localProjects.length} 个项目到 Supabase...`);
+        logger.log(`开始迁移 ${localProjects.length} 个项目到 Supabase...`);
         await this.saveToSupabase(localProjects);
-        console.log('数据迁移完成');
+        logger.log('数据迁移完成');
 
         // 标记已迁移
         safeLocalStorage.setItem(this.MIGRATION_KEY, 'true');
       }
     } catch (error) {
-      console.warn('数据迁移失败:', error);
+      logger.warn('数据迁移失败:', error);
       // 不抛出错误，继续使用本地存储
     }
   }
@@ -285,12 +285,11 @@ class SettingsManager {
         theme: data.theme,
       };
     } catch (error) {
-      console.warn('从 Supabase 加载设置失败:', error);
+      logger.warn('从 Supabase 加载设置失败:', error);
       return null;
     }
   }
 
-  // 保存设置到 Supabase
   private async saveToSupabase(settings: UserSettings): Promise<void> {
     if (!isSupabaseConfigured()) {
       return;
@@ -346,7 +345,7 @@ class SettingsManager {
           return cloudSettings;
         }
       } catch (error) {
-        console.warn('从 Supabase 加载设置失败，使用本地设置:', error);
+        logger.warn('从 Supabase 加载设置失败，使用本地设置:', error);
       }
     }
 

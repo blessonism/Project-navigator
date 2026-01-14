@@ -1,7 +1,6 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-09
-**Commit:** b19ca21
+**Generated:** 2026-01-15
 **Branch:** master
 
 ## OVERVIEW
@@ -13,85 +12,105 @@ Personal project portfolio SPA built with React 18 + TypeScript + Vite + Tailwin
 ```
 navigator/
 ├── src/
-│   ├── App.tsx              # Monolithic main component (1580 lines) - ALL app logic here
+│   ├── App.tsx              # Entry point (69 lines) - orchestrates AdminView/PublicView
 │   ├── main.tsx             # React entry point
-│   ├── components/          # UI components
+│   ├── components/
 │   │   ├── ui/              # shadcn/ui primitives (DO NOT MODIFY)
-│   │   ├── ProjectDetailDialog.tsx   # Project detail modal (theme-aware)
-│   │   ├── ModernProjectDetailDialog.tsx  # Modern theme variant
-│   │   ├── Timeline.tsx     # Project timeline display
-│   │   ├── ChallengeSection.tsx  # Challenge cards
-│   │   ├── ThemeSwitcher.tsx    # Theme selector
-│   │   └── EmptyState.tsx   # Empty state placeholder
-│   ├── lib/                 # Utilities and services
-│   │   ├── storage.ts       # HybridStorage class (Supabase + localStorage)
-│   │   ├── supabase.ts      # Supabase client config
-│   │   ├── auth.ts          # SHA-256 password auth (session-based)
-│   │   ├── storageDetector.ts  # Safe storage access wrappers
-│   │   ├── useTheme.ts      # Theme hook (misplaced - should be in hooks/)
-│   │   ├── themes.ts        # Theme definitions
-│   │   └── utils.ts         # cn() utility
-│   └── hooks/
-│       └── use-toast.ts     # Toast notification hook
-├── supabase-init.sql        # Projects table schema
-├── supabase-settings-table.sql  # User settings schema
-└── scripts/
-    └── generate-hash.js     # Admin password hash generator
+│   │   ├── ProjectDetail/   # Atomic components for project detail dialog
+│   │   │   ├── index.ts     # Exports
+│   │   │   ├── types.ts     # ThemeVariant, BaseProjectProps
+│   │   │   ├── ProjectHero.tsx
+│   │   │   ├── ProjectTechStack.tsx
+│   │   │   ├── ProjectTimeline.tsx
+│   │   │   ├── ProjectChallenges.tsx
+│   │   │   └── ProjectOverview.tsx
+│   │   ├── ProjectDetailDialog.tsx  # Unified dialog (lazy-loaded, theme-aware)
+│   │   ├── AdminView/       # Admin feature module
+│   │   ├── PublicView/      # Public feature module
+│   │   ├── ChallengeSection.tsx
+│   │   ├── ThemeSwitcher.tsx
+│   │   └── EmptyState.tsx
+│   ├── hooks/
+│   │   ├── useProjects.ts   # Project state + CRUD (379 lines)
+│   │   ├── useAdminAuth.ts  # Auth state management
+│   │   ├── useTheme.ts      # Theme persistence
+│   │   └── use-toast.ts     # Toast notifications
+│   ├── lib/
+│   │   ├── storage.ts       # HybridStorage (Supabase + localStorage)
+│   │   ├── supabase.ts      # Supabase client
+│   │   ├── auth.ts          # SHA-256 password auth
+│   │   ├── logger.ts        # Dev-only logging utility
+│   │   ├── storageDetector.ts
+│   │   ├── themes.ts
+│   │   └── utils.ts
+│   ├── types/
+│   │   └── project.ts       # Project, TechStackItem, Challenge, TimelineEvent
+│   └── constants/
+│       └── defaultProjects.ts
+├── vite.config.ts           # Includes manualChunks for code splitting
+├── supabase-init.sql
+└── supabase-settings-table.sql
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add/modify project fields | `src/App.tsx` | `Project` interface + form handling |
-| Change storage behavior | `src/lib/storage.ts` | `HybridStorage` class |
-| Modify project detail UI | `src/components/ProjectDetailDialog.tsx` | Theme-conditional rendering |
-| Add new theme | `src/lib/themes.ts` + `useTheme.ts` | CSS variables in `index.css` |
+| Add/modify project fields | `src/types/project.ts` | Single source of truth |
+| Change storage behavior | `src/lib/storage.ts` | HybridStorage class |
+| Modify project detail UI | `src/components/ProjectDetail/*` | Atomic components |
+| Add new theme variant | `src/components/ProjectDetail/types.ts` | ThemeVariant type |
 | Database schema changes | `supabase-*.sql` files | Run in Supabase SQL editor |
 | UI primitives | `src/components/ui/` | shadcn/ui - regenerate, don't edit |
 
 ## CONVENTIONS
 
-- **Chinese UI text**: All user-facing strings in Chinese (管理员, 项目, 设置...)
-- **camelCase → snake_case**: Project fields convert between frontend/Supabase formats
+- **Chinese UI text**: All user-facing strings in Chinese
+- **camelCase → snake_case**: Project fields convert between frontend/Supabase
 - **Path aliases**: `@/*` maps to `./src/*`
-- **CSS theming**: HSL CSS variables via Tailwind (`--background`, `--foreground`, etc.)
-- **No ESLint/Prettier**: TypeScript strict mode only
+- **CSS theming**: HSL CSS variables via Tailwind
+- **Dev-only logging**: Use `logger` from `@/lib/logger` instead of `console`
+- **Lazy loading**: Heavy components use `React.lazy()` + `Suspense`
 
-## ANTI-PATTERNS (THIS PROJECT)
+## ANTI-PATTERNS
 
-- **DO NOT** edit `src/components/ui/*` directly - regenerate via shadcn/ui CLI
-- **DO NOT** add routes - single-page app, use dialogs/modals
-- **DO NOT** store sensitive data in localStorage - use sessionStorage for auth state
-- **AVOID** adding to App.tsx - already 1580 lines, extract components instead
+- **DO NOT** edit `src/components/ui/*` directly
+- **DO NOT** add routes - single-page app
+- **DO NOT** use `console.log` in production code - use `logger`
+- **DO NOT** use `key={index}` - use stable identifiers
 
-## UNIQUE STYLES
+## ARCHITECTURE
 
-- **Admin access**: Hidden via URL param `?admin` or keyboard shortcut `Ctrl+Shift+A`
-- **Hybrid storage pattern**: Always save to localStorage first (fast), then sync to Supabase
-- **Theme-conditional components**: `ProjectDetailDialog` renders different component based on theme
-- **Default projects**: Hardcoded fallback data when storage is empty
+**Layer Structure** (L1 → L4):
+- L1 Entry: `App.tsx` (orchestration only)
+- L2 Coordination: `useProjects`, `useAdminAuth` hooks
+- L3 Molecular: `AdminView`, `PublicView`, `ProjectDetail/*`
+- L4 Atomic: `ui/*` components
+
+**Code Splitting**:
+- `react-vendor`: React core
+- `ui-vendor`: Radix UI components
+- `motion`: Framer Motion
+- `ProjectDetailDialog`: Lazy-loaded on demand
 
 ## COMMANDS
 
 ```bash
-npm run dev      # Start Vite dev server (localhost:5173)
-npm run build    # TypeScript check + Vite production build
-npm run preview  # Preview production build locally
+npm run dev      # Start Vite dev server
+npm run build    # TypeScript check + production build
+npm run preview  # Preview production build
 ```
 
 ## ENVIRONMENT
 
 ```bash
-# .env (required for cloud features)
 VITE_SUPABASE_URL=https://xxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
-VITE_ADMIN_PASSWORD_HASH=<sha256-hash>  # Generate via: node scripts/generate-hash.js
+VITE_ADMIN_PASSWORD_HASH=<sha256-hash>
 ```
 
 ## NOTES
 
-- **No tests**: Manual testing only via `storageTest.ts` and browser console
-- **Vercel deployment**: Auto-deploys on push, SPA routing configured in `vercel.json`
-- **Large file warning**: `App.tsx` is monolithic - consider refactoring before adding features
-- **Theme hook location**: `useTheme.ts` is in `lib/` not `hooks/` (historical)
+- **No tests**: Manual testing via browser console
+- **Vercel deployment**: Auto-deploys on push
+- **Bundle analysis**: Use `npx vite-bundle-visualizer`

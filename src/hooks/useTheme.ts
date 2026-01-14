@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ThemeName } from '@/lib/themes';
 import { getLocalSettingsSnapshot, loadSettings, saveSetting } from '@/lib/storage';
+import { logger } from '@/lib/logger';
 
 export function useTheme(onSaveSuccess?: () => void, onSaveError?: (error: string) => void) {
   const hasUserChangedRef = useRef(false);
@@ -20,7 +21,7 @@ export function useTheme(onSaveSuccess?: () => void, onSaveError?: (error: strin
         const settings = await loadSettings();
         setThemeState(settings.theme as ThemeName);
       } catch (error) {
-        console.error('加载主题失败:', error);
+        logger.error('加载主题失败:', error);
       } finally {
         setIsLoaded(true);
       }
