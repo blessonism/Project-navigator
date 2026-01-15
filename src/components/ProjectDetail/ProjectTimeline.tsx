@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { CheckCircle, Code2, AlertCircle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -50,33 +49,24 @@ class TimelineErrorBoundary extends React.Component<
 }
 
 const TimelineRenderer = ({ data }: { data: TimelineEntry[] }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [height, setHeight] = React.useState(0);
 
   React.useEffect(() => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
       setHeight(rect.height);
     }
   }, [data]);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start 10%', 'end 50%'],
-  });
-
-  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, Math.max(height, 100)]);
-  const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
-
   return (
-    <div className="w-full font-sans" ref={containerRef}>
-      <div ref={ref} className="relative pb-8">
-        {data.map((item) => (
-          <div key={item.title} className="flex justify-start pt-8 md:gap-10">
+    <div className="w-full font-sans">
+      <div ref={containerRef} className="relative pb-8">
+        {data.map((item, index) => (
+          <div key={`${item.title}-${index}`} className="flex justify-start pt-8 md:gap-10">
             <div className="sticky flex flex-col md:flex-row z-40 items-center top-20 self-start max-w-xs lg:max-w-sm md:w-full">
               <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-background flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-muted border border-border p-2" />
+                <div className="h-3 w-3 rounded-full bg-muted-foreground/20 ring-2 ring-muted-foreground/40" />
               </div>
               <h3 className="hidden md:block text-lg md:pl-20 md:text-2xl font-bold text-muted-foreground">
                 {item.title}
@@ -91,18 +81,11 @@ const TimelineRenderer = ({ data }: { data: TimelineEntry[] }) => {
             </div>
           </div>
         ))}
+        {/* 渐变时间线：两端浅中间深 */}
         <div
           style={{ height: height + 'px' }}
-          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-gradient-to-b from-transparent via-border to-transparent [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
-        >
-          <motion.div
-            style={{
-              height: heightTransform,
-              opacity: opacityTransform,
-            }}
-            className="absolute inset-x-0 top-0 w-[2px] bg-gradient-to-t from-primary via-primary/50 to-transparent rounded-full"
-          />
-        </div>
+          className="absolute left-[31px] md:left-[31px] top-0 w-px bg-gradient-to-b from-transparent via-muted-foreground/50 to-transparent"
+        />
       </div>
     </div>
   );

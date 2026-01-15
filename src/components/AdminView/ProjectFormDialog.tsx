@@ -1,6 +1,4 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { X, Save, Layers, Image, Code2, Target, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import type { Project, ProjectFormData } from '@/types/project';
 import { ImageUpload } from './ImageUpload';
 
@@ -320,11 +319,9 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
                     </TabsContent>
                     <TabsContent value="preview">
                       <ScrollArea className="h-[200px] w-full rounded-md border p-4 bg-muted/20">
-                        <div className="prose dark:prose-invert prose-sm max-w-none">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {formData.detailedDescription || '*(暂无内容)*'}
-                          </ReactMarkdown>
-                        </div>
+                        <MarkdownRenderer
+                          content={formData.detailedDescription || '*(暂无内容)*'}
+                        />
                       </ScrollArea>
                     </TabsContent>
                   </Tabs>

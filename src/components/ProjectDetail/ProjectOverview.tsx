@@ -4,6 +4,7 @@ import { CheckCircle, CheckCircle2, Zap, Target, Lightbulb } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import type { ProjectOverviewProps } from './types';
 
 export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
@@ -41,9 +42,9 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           </CardHeader>
           <CardContent>
             {project.detailedDescription || project.description ? (
-              <p className="text-muted-foreground leading-relaxed">
-                {project.detailedDescription || project.description}
-              </p>
+              <MarkdownRenderer
+                content={project.detailedDescription || project.description || ''}
+              />
             ) : (
               <EmptyState message="暂无项目详情" variant="modern" />
             )}
@@ -100,9 +101,10 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         </CardHeader>
         <CardContent>
           {project.detailedDescription || project.description ? (
-            <p className="text-muted-foreground leading-relaxed">
-              {project.detailedDescription || project.description}
-            </p>
+            <MarkdownRenderer
+              content={project.detailedDescription || project.description || ''}
+              className="text-muted-foreground"
+            />
           ) : (
             <EmptyState message="暂无项目详情" variant="classic" />
           )}
