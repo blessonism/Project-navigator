@@ -50,7 +50,11 @@ export const ProjectTechStack: React.FC<ProjectTechStackProps> = ({
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {stack.technologies.map((tech) => (
-                  <Badge key={tech} variant="outline" className="px-3 py-1">
+                  <Badge
+                    key={tech}
+                    variant="secondary"
+                    className="px-3 py-1 border border-border/50 shadow-sm"
+                  >
                     {tech}
                   </Badge>
                 ))}
