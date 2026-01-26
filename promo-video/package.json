@@ -1,0 +1,26 @@
+{
+  "name": "navigator-promo-video",
+  "version": "1.0.0",
+  "description": "Navigator promotional video built with Remotion",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render NavigatorPromo out/navigator-promo.mp4",
+    "render:gif": "remotion render NavigatorPromo out/navigator-promo.gif",
+    "build": "remotion bundle"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.409",
+    "@remotion/transitions": "^4.0.409",
+    "@remotion/zod-types": "^4.0.409",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.409",
+    "zod": "^3.22.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}
