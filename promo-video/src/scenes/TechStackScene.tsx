@@ -24,13 +24,19 @@ export const TechStackScene: React.FC = () => {
     { name: "Supabase", icon: "hexagon" },
   ];
 
-  const titleOpacity = interpolate(frame, [0, 30], [0, 1], {
+  // 移除内部退场动画，由 TransitionSeries 的 fade transition 统一处理
+  const exitOpacity = 1;
+  const exitY = 0;
+
+  // 场景开始即开始标题动画
+  const titleStartFrame = 0;
+  const titleOpacity = interpolate(frame, [titleStartFrame, titleStartFrame + 25], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
+    easing: Easing.bezier(0.25, 0.1, 0.25, 1), // 更平滑的 ease-in-out
   });
 
-  const titleY = interpolate(frame, [0, 30], [20, 0], {
+  const titleY = interpolate(frame, [titleStartFrame, titleStartFrame + 30], [15, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -42,6 +48,17 @@ export const TechStackScene: React.FC = () => {
   });
 
   const connectingLineProgress = interpolate(frame, [95, 125], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+
+  const badgeOpacity = interpolate(frame, [120, 145], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const badgeScale = interpolate(frame, [120, 145], [0.9, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -130,6 +147,8 @@ export const TechStackScene: React.FC = () => {
           flexDirection: "column",
           alignItems: "center",
           gap: 80,
+          opacity: exitOpacity,
+          transform: `translateY(${exitY}px)`,
         }}
       >
         <div
@@ -176,7 +195,7 @@ export const TechStackScene: React.FC = () => {
           />
 
           {techStack.map((tech, index) => {
-            const delay = 35 + index * 18;
+            const delay = 55 + index * 15;
             const tagOpacity = interpolate(
               frame,
               [delay, delay + 25],
@@ -217,6 +236,16 @@ export const TechStackScene: React.FC = () => {
               }
             );
 
+            const glowIntensity = interpolate(
+              frame,
+              [delay + 10, delay + 25, delay + 35],
+              [0, 0.4, 0],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              }
+            );
+
             return (
               <div
                 key={index}
@@ -244,7 +273,7 @@ export const TechStackScene: React.FC = () => {
                       fontFamily: "system-ui, -apple-system, sans-serif",
                       letterSpacing: "0.08em",
                       paddingBottom: 8,
-                      textShadow: "0 1px 2px rgba(0,0,0,0.02)",
+                      textShadow: `0 1px 2px rgba(0,0,0,0.02), 0 0 ${glowIntensity * 20}px rgba(10, 10, 26, ${glowIntensity * 0.3})`,
                     }}
                   >
                     {tech.name}
@@ -261,6 +290,29 @@ export const TechStackScene: React.FC = () => {
                     }}
                   />
                 </div>
+
+                {index < techStack.length - 1 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: -40,
+                      top: "50%",
+                      fontSize: 20,
+                      color: "#0a0a1a",
+                      opacity: interpolate(
+                        frame,
+                        [delay + 20, delay + 35],
+                        [0, 0.15],
+                        {
+                          extrapolateLeft: "clamp",
+                          extrapolateRight: "clamp",
+                        }
+                      ),
+                    }}
+                  >
+                    •
+                  </div>
+                )}
               </div>
             );
           })}
@@ -268,16 +320,41 @@ export const TechStackScene: React.FC = () => {
 
         <div
           style={{
-            fontSize: 20,
-            fontWeight: 300,
-            color: "#4a5568",
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            letterSpacing: "0.2em",
-            opacity: taglineOpacity * 0.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
             marginTop: 20,
           }}
         >
-          BUILT WITH PRECISION
+          <div
+            style={{
+              fontSize: 20,
+              fontWeight: 300,
+              color: "#4a5568",
+              fontFamily: "system-ui, -apple-system, sans-serif",
+              letterSpacing: "0.2em",
+              opacity: taglineOpacity * 0.5,
+            }}
+          >
+            BUILT WITH PRECISION
+          </div>
+
+          <div
+            style={{
+              padding: "8px 16px",
+              border: "1px solid rgba(10, 10, 26, 0.15)",
+              borderRadius: 4,
+              fontSize: 12,
+              fontWeight: 400,
+              color: "#0a0a1a",
+              fontFamily: "monospace",
+              letterSpacing: "0.1em",
+              opacity: badgeOpacity * 0.6,
+              transform: `scale(${badgeScale})`,
+            }}
+          >
+            PRODUCTION READY
+          </div>
         </div>
       </div>
     </AbsoluteFill>

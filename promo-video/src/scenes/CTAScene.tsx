@@ -64,6 +64,16 @@ export const CTAScene: React.FC<CTASceneProps> = () => {
     extrapolateRight: "clamp",
   });
 
+  const arrowPulse = interpolate(
+    frame,
+    [130, 145, 160],
+    [1, 1.15, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "extend",
+    }
+  );
+
   const patternOpacity = interpolate(frame, [0, 50], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -72,6 +82,32 @@ export const CTAScene: React.FC<CTASceneProps> = () => {
   const geometricRotation = interpolate(frame, [0, 140], [0, 360], {
     extrapolateLeft: "clamp",
     extrapolateRight: "extend",
+  });
+
+  const shimmerProgress = interpolate(frame, [50, 90], [-100, 200], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const cursorBlink = interpolate(
+    frame,
+    [110, 120, 130, 140, 150, 160],
+    [0, 1, 0, 1, 0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "extend",
+    }
+  );
+
+  const licenseOpacity = interpolate(frame, [130, 155], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const licenseScale = interpolate(frame, [130, 155], [0.9, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
   const renderLetters = (text: string, startFrame: number) => {
@@ -197,9 +233,22 @@ export const CTAScene: React.FC<CTASceneProps> = () => {
               opacity: titleOpacity,
               transform: `translateY(${titleY}px)`,
               textShadow: "0 2px 4px rgba(0,0,0,0.03)",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
             完全免费
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: `${shimmerProgress}%`,
+                width: "30%",
+                height: "100%",
+                background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)",
+                transform: "skewX(-20deg)",
+              }}
+            />
           </div>
 
           <div
@@ -229,49 +278,87 @@ export const CTAScene: React.FC<CTASceneProps> = () => {
         <div
           style={{
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
-            gap: 20,
-            opacity: linkOpacity,
-            transform: `translateY(${linkY}px)`,
+            gap: 25,
           }}
         >
           <div
             style={{
-              fontSize: 28,
-              fontWeight: 300,
-              color: "#4a5568",
-              fontFamily: "monospace",
-              letterSpacing: "0.05em",
+              display: "flex",
+              alignItems: "center",
+              gap: 20,
+              opacity: linkOpacity,
+              transform: `translateY(${linkY}px)`,
             }}
           >
-            github.com/blessonism/navigator
+            <div
+              style={{
+                fontSize: 28,
+                fontWeight: 300,
+                color: "#4a5568",
+                fontFamily: "monospace",
+                letterSpacing: "0.05em",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              github.com/blessonism/navigator
+              <span
+                style={{
+                  marginLeft: 4,
+                  opacity: cursorBlink * linkOpacity,
+                  fontSize: 32,
+                }}
+              >
+                |
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                opacity: arrowOpacity,
+                transform: `scale(${arrowPulse})`,
+              }}
+            >
+              <div
+                style={{
+                  width: arrowProgress * 50,
+                  height: 1,
+                  backgroundColor: "#4a5568",
+                  opacity: 0.6,
+                }}
+              />
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderTop: "6px solid transparent",
+                  borderBottom: "6px solid transparent",
+                  borderLeft: `10px solid rgba(74, 85, 104, ${arrowProgress * 0.6})`,
+                  transform: `translateX(${(1 - arrowProgress) * -10}px)`,
+                }}
+              />
+            </div>
           </div>
 
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              opacity: arrowOpacity,
+              padding: "6px 14px",
+              border: "1px solid rgba(10, 10, 26, 0.2)",
+              borderRadius: 3,
+              fontSize: 11,
+              fontWeight: 400,
+              color: "#4a5568",
+              fontFamily: "monospace",
+              letterSpacing: "0.15em",
+              opacity: licenseOpacity * 0.5,
+              transform: `scale(${licenseScale})`,
             }}
           >
-            <div
-              style={{
-                width: arrowProgress * 50,
-                height: 1,
-                backgroundColor: "#4a5568",
-                opacity: 0.6,
-              }}
-            />
-            <div
-              style={{
-                width: 0,
-                height: 0,
-                borderTop: "6px solid transparent",
-                borderBottom: "6px solid transparent",
-                borderLeft: `10px solid rgba(74, 85, 104, ${arrowProgress * 0.6})`,
-                transform: `translateX(${(1 - arrowProgress) * -10}px)`,
-              }}
-            />
+            MIT LICENSE
           </div>
         </div>
       </div>

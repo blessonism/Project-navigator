@@ -21,7 +21,7 @@ export const NavigatorPromo: React.FC<PromoProps> = ({
   return (
     <AbsoluteFill style={{ backgroundColor: "#fafafa" }}>
       <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={90}>
+        <TransitionSeries.Sequence durationInFrames={150}>
           <IntroScene
             title={title}
             tagline={tagline}
@@ -34,7 +34,7 @@ export const NavigatorPromo: React.FC<PromoProps> = ({
           timing={linearTiming({ durationInFrames: transitionDuration })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={120}>
+        <TransitionSeries.Sequence durationInFrames={150}>
           <PainPointScene />
         </TransitionSeries.Sequence>
 
@@ -52,7 +52,7 @@ export const NavigatorPromo: React.FC<PromoProps> = ({
           timing={linearTiming({ durationInFrames: transitionDuration })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={150}>
+        <TransitionSeries.Sequence durationInFrames={210}>
           <TechStackScene />
         </TransitionSeries.Sequence>
 

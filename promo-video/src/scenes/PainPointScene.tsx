@@ -38,6 +38,41 @@ export const PainPointScene: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
+  const ellipsisOpacity = interpolate(frame, [90, 120], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const ellipsisPulse = interpolate(
+    frame,
+    [90, 110, 130, 150],
+    [0.7, 1, 0.7, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "extend",
+    }
+  );
+
+  const dividerPulse = interpolate(
+    frame,
+    [110, 125, 140],
+    [0.2, 0.3, 0.2],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "extend",
+    }
+  );
+
+  const bgGradientShift = interpolate(frame, [0, 140], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const vignetteOpacity = interpolate(frame, [0, 30], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   const renderWords = () => {
     return words.map((word, wordIndex) => {
       const wordDelay = 30 + wordIndex * 15;
@@ -84,7 +119,9 @@ export const PainPointScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#fafafa",
+        background: `linear-gradient(135deg,
+          rgba(250, 250, 250, 1) ${100 - bgGradientShift * 2}%,
+          rgba(248, 248, 252, 1) 100%)`,
         justifyContent: "center",
         alignItems: "center",
         backgroundImage: `
@@ -105,6 +142,16 @@ export const PainPointScene: React.FC = () => {
         `,
       }}
     >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse at center, transparent 40%, rgba(10, 10, 26, 0.05) 100%)",
+          opacity: vignetteOpacity,
+          pointerEvents: "none",
+        }}
+      />
+
       <div
         style={{
           position: "absolute",
@@ -158,9 +205,21 @@ export const PainPointScene: React.FC = () => {
             maxWidth: 1200,
             lineHeight: 1.5,
             textShadow: "0 2px 4px rgba(0,0,0,0.02)",
+            display: "flex",
+            alignItems: "center",
           }}
         >
           {renderWords()}
+          <span
+            style={{
+              opacity: ellipsisOpacity * ellipsisPulse,
+              marginLeft: 12,
+              fontSize: 80,
+              transform: "translateY(-4px)",
+            }}
+          >
+            ...
+          </span>
         </div>
 
         <div
@@ -184,7 +243,8 @@ export const PainPointScene: React.FC = () => {
             width: lineWidth,
             height: 1,
             backgroundColor: "#0a0a1a",
-            opacity: lineOpacity * 0.2,
+            opacity: lineOpacity * dividerPulse,
+            boxShadow: `0 0 8px rgba(10, 10, 26, ${lineOpacity * dividerPulse * 0.3})`,
           }}
         />
       </div>

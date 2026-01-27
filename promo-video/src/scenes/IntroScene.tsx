@@ -22,7 +22,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const cornerSize = interpolate(frame, [0, 40], [0, 80], {
+  const cornerSize = interpolate(frame, [0, 40], [0, 120], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -38,7 +38,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
     }
   );
 
-  const gridOpacity = interpolate(frame, [0, 60], [0, 0.015], {
+  const gridOpacity = interpolate(frame, [0, 60], [0, 0.05], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -50,6 +50,27 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
   });
 
   const estOpacity = interpolate(frame, [70, 90], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const vignetteOpacity = interpolate(frame, [0, 50], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const particleOpacity = interpolate(frame, [30, 70], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const secondaryLineWidth = interpolate(frame, [50, 80], [0, 300], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+
+  const noiseOpacity = interpolate(frame, [0, 40], [0, 0.015], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -79,6 +100,16 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
         }
       );
 
+      const gradientOpacity = interpolate(
+        frame,
+        [letterDelay + 10, letterDelay + 30],
+        [0, 1],
+        {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        }
+      );
+
       return (
         <span
           key={index}
@@ -86,6 +117,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
             opacity: letterOpacity,
             transform: `translateY(${letterY}px)`,
             display: "inline-block",
+            color: "#0a0a1a",
           }}
         >
           {letter === " " ? "\u00A0" : letter}
@@ -141,6 +173,59 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
     );
   };
 
+  const FloatingParticle = ({ index }: { index: number }) => {
+    const seed = index * 123.456;
+    const startX = (Math.sin(seed) * 400) + 540;
+    const startY = (Math.cos(seed) * 300) + 360;
+    const driftX = Math.sin(seed * 2) * 80;
+    const driftY = Math.cos(seed * 1.5) * 60;
+
+    const particleX = interpolate(
+      frame,
+      [0, 140],
+      [0, driftX],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "extend",
+      }
+    );
+
+    const particleY = interpolate(
+      frame,
+      [0, 140],
+      [0, driftY],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "extend",
+      }
+    );
+
+    const particleFade = interpolate(
+      frame,
+      [30 + index * 5, 60 + index * 5],
+      [0, 1],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: startX + particleX,
+          top: startY + particleY,
+          width: 3,
+          height: 3,
+          borderRadius: "50%",
+          backgroundColor: "#0a0a1a",
+          opacity: particleFade * particleOpacity * 0.15,
+        }}
+      />
+    );
+  };
+
   return (
     <AbsoluteFill
       style={{
@@ -154,6 +239,32 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
         backgroundSize: "60px 60px",
       }}
     >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse at center, transparent 30%, rgba(10, 10, 26, 0.08) 100%)",
+          opacity: vignetteOpacity,
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: `
+            repeating-linear-gradient(0deg, rgba(10, 10, 26, ${noiseOpacity}), rgba(10, 10, 26, ${noiseOpacity}) 1px, transparent 1px, transparent 2px),
+            repeating-linear-gradient(90deg, rgba(10, 10, 26, ${noiseOpacity}), rgba(10, 10, 26, ${noiseOpacity}) 1px, transparent 1px, transparent 2px)
+          `,
+          pointerEvents: "none",
+        }}
+      />
+
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <FloatingParticle key={i} index={i} />
+      ))}
+
       <CornerBracket position="top-left" rotation={0} />
       <CornerBracket position="top-right" rotation={90} />
       <CornerBracket position="bottom-left" rotation={-90} />
@@ -168,17 +279,45 @@ export const IntroScene: React.FC<IntroSceneProps> = ({
           transform: `scale(${breathingScale})`,
         }}
       >
-        <div
-          style={{
-            fontSize: 140,
-            fontWeight: 200,
-            color: "#0a0a1a",
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            letterSpacing: "0.1em",
-            textShadow: "0 1px 2px rgba(0,0,0,0.03)",
-          }}
-        >
-          {renderLetters(title, 20)}
+        <div style={{ position: "relative" }}>
+          <div
+            style={{
+              position: "absolute",
+              top: -40,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: secondaryLineWidth,
+              height: 1,
+              backgroundColor: "#0a0a1a",
+              opacity: 0.08,
+            }}
+          />
+
+          <div
+            style={{
+              fontSize: 140,
+              fontWeight: 200,
+              color: "#0a0a1a",
+              fontFamily: "system-ui, -apple-system, sans-serif",
+              letterSpacing: "0.1em",
+              textShadow: "0 1px 2px rgba(0,0,0,0.03)",
+            }}
+          >
+            {renderLetters(title, 20)}
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              bottom: -40,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: secondaryLineWidth,
+              height: 1,
+              backgroundColor: "#0a0a1a",
+              opacity: 0.08,
+            }}
+          />
         </div>
 
         <div

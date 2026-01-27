@@ -114,10 +114,27 @@ export const FeaturesScene: React.FC<FeaturesSceneProps> = () => {
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
+  const countOpacity = interpolate(featureFrame, [15, 40], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const gradientAnimProgress = interpolate(
+    featureFrame,
+    [0, featureDuration],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#fafafa",
+        background: `linear-gradient(135deg,
+          rgba(250, 250, 250, 1) ${gradientAnimProgress * 5}%,
+          rgba(252, 252, 254, 1) 100%)`,
         justifyContent: "center",
         alignItems: "center",
       }}
@@ -135,6 +152,22 @@ export const FeaturesScene: React.FC<FeaturesSceneProps> = () => {
         }}
       >
         {currentFeature.number}
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: 60,
+          right: 80,
+          fontSize: 14,
+          fontWeight: 300,
+          color: "#4a5568",
+          fontFamily: "monospace",
+          letterSpacing: "0.1em",
+          opacity: countOpacity * 0.4,
+        }}
+      >
+        {currentFeatureIndex + 1}/{features.length}
       </div>
 
       <div
@@ -247,7 +280,7 @@ export const FeaturesScene: React.FC<FeaturesSceneProps> = () => {
           style={{
             position: "relative",
             width: 600,
-            height: 1,
+            height: 2,
             backgroundColor: "rgba(10, 10, 26, 0.08)",
           }}
         >
@@ -257,18 +290,34 @@ export const FeaturesScene: React.FC<FeaturesSceneProps> = () => {
               top: 0,
               left: 0,
               width: progressWidth,
-              height: 1,
-              backgroundColor: "#0a0a1a",
-              opacity: 0.3,
+              height: 2,
+              background: "linear-gradient(90deg, rgba(10, 10, 26, 0.3), rgba(10, 10, 26, 0.5))",
             }}
           />
+
+          {/* 段落分隔刻度线 - 对应每个特性的起始位置 */}
+          {[0, 200, 400, 600].map((pos, idx) => (
+            <div
+              key={idx}
+              style={{
+                position: "absolute",
+                left: pos,
+                top: -3,
+                width: 1,
+                height: 8,
+                backgroundColor: "#0a0a1a",
+                opacity: progressWidth >= pos ? 0.3 : 0.1,
+              }}
+            />
+          ))}
         </div>
 
+        {/* 数字标签 - 居中对齐到每个段落区间 */}
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
-            marginTop: 12,
+            justifyContent: "space-around",
+            marginTop: 16,
             width: 600,
           }}
         >
@@ -276,16 +325,38 @@ export const FeaturesScene: React.FC<FeaturesSceneProps> = () => {
             const isActive = index === currentFeatureIndex;
             const isPast = index < currentFeatureIndex;
 
+            // 当前段落的进度 (0-1)
+            const segmentProgress = interpolate(
+              featureFrame,
+              [0, featureDuration],
+              [0, 1],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              }
+            );
+
+            // 当前激活段落的数字有缩放动画
+            const numberScale = isActive
+              ? interpolate(segmentProgress, [0, 0.1], [1.1, 1], {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                })
+              : 1;
+
             return (
               <div
                 key={index}
                 style={{
                   fontSize: 14,
-                  fontWeight: 300,
-                  color: isActive || isPast ? "#0a0a1a" : "#4a5568",
-                  opacity: isActive ? 0.6 : isPast ? 0.3 : 0.2,
+                  fontWeight: isActive ? 400 : 300,
+                  color: "#0a0a1a",
+                  opacity: isActive ? 0.7 : isPast ? 0.35 : 0.2,
                   fontFamily: "monospace",
                   letterSpacing: "0.1em",
+                  transform: `scale(${numberScale})`,
+                  width: 200,
+                  textAlign: "center",
                 }}
               >
                 {feature.number}
