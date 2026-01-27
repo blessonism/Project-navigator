@@ -66,11 +66,11 @@ export const CTAScene: React.FC<CTASceneProps> = () => {
 
   const arrowPulse = interpolate(
     frame,
-    [130, 145, 160],
-    [1, 1.15, 1],
+    [110, 125],
+    [1, 1.05],
     {
       extrapolateLeft: "clamp",
-      extrapolateRight: "extend",
+      extrapolateRight: "clamp",
     }
   );
 
@@ -91,8 +91,8 @@ export const CTAScene: React.FC<CTASceneProps> = () => {
 
   const cursorBlink = interpolate(
     frame,
-    [110, 120, 130, 140, 150, 160],
-    [0, 1, 0, 1, 0, 1],
+    [110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
     {
       extrapolateLeft: "clamp",
       extrapolateRight: "extend",

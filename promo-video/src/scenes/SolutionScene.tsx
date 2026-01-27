@@ -16,10 +16,11 @@ export const SolutionScene: React.FC<SolutionSceneProps> = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const sceneExitStart = 120;
+  // 内部退场从 150 帧开始，持续到场景结束 180 帧
+  const sceneExitStart = 150;
   const exitOpacity = interpolate(
     frame,
-    [sceneExitStart, 150],
+    [sceneExitStart, 180],
     [1, 0],
     {
       extrapolateLeft: "clamp",
@@ -30,7 +31,7 @@ export const SolutionScene: React.FC<SolutionSceneProps> = () => {
 
   const exitY = interpolate(
     frame,
-    [sceneExitStart, 150],
+    [sceneExitStart, 180],
     [0, -30],
     {
       extrapolateLeft: "clamp",
@@ -344,15 +345,48 @@ export const SolutionScene: React.FC<SolutionSceneProps> = () => {
         <div
           style={{
             display: "flex",
-            gap: 80,
+            gap: 0,
             alignItems: "center",
           }}
         >
           {features.map((feature, index) => {
-            const delay = 55 + index * 15;
+            const delay = 60 + index * 20;
             const featureOpacity = interpolate(
               frame,
-              [delay, delay + 20],
+              [delay, delay + 25],
+              [0, 1],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.bezier(0.16, 1, 0.3, 1),
+              }
+            );
+
+            const featureY = interpolate(
+              frame,
+              [delay, delay + 25],
+              [20, 0],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.bezier(0.16, 1, 0.3, 1),
+              }
+            );
+
+            const underlineWidth = interpolate(
+              frame,
+              [delay + 10, delay + 35],
+              [0, 100],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.bezier(0.16, 1, 0.3, 1),
+              }
+            );
+
+            const dotOpacity = interpolate(
+              frame,
+              [delay + 15, delay + 30],
               [0, 1],
               {
                 extrapolateLeft: "clamp",
@@ -360,92 +394,64 @@ export const SolutionScene: React.FC<SolutionSceneProps> = () => {
               }
             );
 
-            const featureY = spring({
-              frame: frame - delay,
-              fps,
-              config: { damping: 15, stiffness: 100 },
-              from: 20,
-              to: 0,
-            });
-
-            const hoverEffect = interpolate(
-              Math.sin(((frame - delay) / 40 + index) * Math.PI * 2),
-              [-1, 1],
-              [-2, 2]
-            );
+            const isLastFeature = index === features.length - 1;
 
             return (
               <div
                 key={index}
                 style={{
                   display: "flex",
-                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 16,
-                  opacity: featureOpacity,
-                  transform: `translateY(${featureY + (frame > delay + 20 ? hoverEffect : 0)}px)`,
-                  position: "relative",
+                  gap: 0,
                 }}
               >
                 <div
                   style={{
-                    position: "absolute",
-                    top: -30,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: 4,
-                    height: 4,
-                    borderRadius: "50%",
-                    backgroundColor: "#0a0a1a",
-                    opacity: featureOpacity * 0.3,
-                  }}
-                />
-
-                <span
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 300,
-                    color: "#2d3748",
-                    letterSpacing: "0.05em",
                     position: "relative",
+                    opacity: featureOpacity,
+                    transform: `translateY(${featureY}px)`,
                   }}
                 >
-                  {feature}
+                  <div
+                    style={{
+                      fontSize: 32,
+                      fontWeight: 300,
+                      color: "#4a5568",
+                      fontFamily: "system-ui, -apple-system, sans-serif",
+                      letterSpacing: "0.12em",
+                      paddingBottom: 8,
+                    }}
+                  >
+                    {feature}
+                  </div>
                   <div
                     style={{
                       position: "absolute",
-                      bottom: -8,
-                      left: 0,
-                      right: 0,
-                      height: 1,
-                      background: `linear-gradient(90deg, transparent, rgba(10, 10, 26, ${featureOpacity * 0.15}), transparent)`,
+                      bottom: 0,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: `${underlineWidth * 0.4}%`,
+                      height: 4,
+                      backgroundColor: "#d1d5db",
+                      borderRadius: 2,
+                      opacity: 0.6,
                     }}
                   />
-                </span>
+                </div>
 
-                <div
-                  style={{
-                    width: 60,
-                    height: 1,
-                    background: "linear-gradient(90deg, transparent, #0a0a1a, transparent)",
-                    opacity: 0.2,
-                    marginTop: 6,
-                  }}
-                />
-
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: -30,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: 2,
-                    height: 2,
-                    borderRadius: "50%",
-                    backgroundColor: "#0a0a1a",
-                    opacity: featureOpacity * 0.2,
-                  }}
-                />
+                {!isLastFeature && (
+                  <div
+                    style={{
+                      fontSize: 24,
+                      fontWeight: 300,
+                      color: "#4a5568",
+                      margin: "0 50px",
+                      opacity: dotOpacity * 0.3,
+                    }}
+                  >
+                    ·
+                  </div>
+                )}
               </div>
             );
           })}

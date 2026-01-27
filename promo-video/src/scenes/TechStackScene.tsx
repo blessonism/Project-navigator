@@ -28,12 +28,12 @@ export const TechStackScene: React.FC = () => {
   const exitOpacity = 1;
   const exitY = 0;
 
-  // 场景开始即开始标题动画
+  // 标题从场景开始时就可见，配合转场效果
   const titleStartFrame = 0;
-  const titleOpacity = interpolate(frame, [titleStartFrame, titleStartFrame + 25], [0, 1], {
+  const titleOpacity = interpolate(frame, [titleStartFrame, titleStartFrame + 15], [0.6, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: Easing.bezier(0.25, 0.1, 0.25, 1), // 更平滑的 ease-in-out
+    easing: Easing.bezier(0.25, 0.1, 0.25, 1),
   });
 
   const titleY = interpolate(frame, [titleStartFrame, titleStartFrame + 30], [15, 0], {
@@ -195,7 +195,7 @@ export const TechStackScene: React.FC = () => {
           />
 
           {techStack.map((tech, index) => {
-            const delay = 55 + index * 15;
+            const delay = 25 + index * 12;
             const tagOpacity = interpolate(
               frame,
               [delay, delay + 25],

@@ -43,7 +43,7 @@ export const NavigatorPromo: React.FC<PromoProps> = ({
           timing={linearTiming({ durationInFrames: transitionDuration })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={150}>
+        <TransitionSeries.Sequence durationInFrames={180}>
           <SolutionScene primaryColor={primaryColor} />
         </TransitionSeries.Sequence>
 
@@ -70,7 +70,7 @@ export const NavigatorPromo: React.FC<PromoProps> = ({
           timing={linearTiming({ durationInFrames: transitionDuration })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={150}>
+        <TransitionSeries.Sequence durationInFrames={250}>
           <CTAScene
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
