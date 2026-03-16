@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import type { Project, ProjectFormData } from '@/types/project';
+import type { ImportPreview, Project, ProjectFormData } from '@/types/project';
 import { ImageUpload } from './ImageUpload';
 
 interface ProjectFormDialogProps {
@@ -31,8 +31,11 @@ interface ProjectFormDialogProps {
   onOpenChange: (open: boolean) => void;
   editingProject: Project | null;
   formData: ProjectFormData;
+  currentDraftId: string | null;
+  importPreview: ImportPreview | null;
   onFormDataChange: (data: ProjectFormData) => void;
   onSave: () => void;
+  onSaveDraft: () => void;
 }
 
 interface ModuleToggleProps {
@@ -100,8 +103,11 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   onOpenChange,
   editingProject,
   formData,
+  currentDraftId,
+  importPreview,
   onFormDataChange,
   onSave,
+  onSaveDraft,
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,9 +117,28 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           <DialogDescription>
             {editingProject ? '修改项目信息' : '填写项目信息以添加到您的作品集'}
           </DialogDescription>
+          {currentDraftId && !editingProject && (
+            <p className="text-xs text-muted-foreground mt-2">当前正在编辑草稿：{currentDraftId}</p>
+          )}
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {importPreview && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+              <p className="text-sm font-medium">导入预览</p>
+              <p className="text-xs text-muted-foreground break-all">
+                来源：{importPreview.sourceType === 'github' ? 'GitHub 仓库' : '网站链接'} ·{' '}
+                {importPreview.sourceUrl}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                AI 置信度：{Math.round(importPreview.confidence * 100)}%
+              </p>
+              {importPreview.warnings.length > 0 && (
+                <p className="text-xs text-amber-600">提示：{importPreview.warnings.join('；')}</p>
+              )}
+            </div>
+          )}
+
           {/* 基本信息 */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -425,6 +450,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             <X className="h-4 w-4 mr-2" />
             取消
+          </Button>
+          <Button variant="secondary" onClick={onSaveDraft}>
+            <Save className="h-4 w-4 mr-2" />
+            另存草稿
           </Button>
           <Button onClick={onSave}>
             <Save className="h-4 w-4 mr-2" />

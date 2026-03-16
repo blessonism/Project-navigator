@@ -20,10 +20,44 @@ const App: React.FC = () => {
         onDialogOpenChange={projectsHook.setIsDialogOpen}
         editingProject={projectsHook.editingProject}
         formData={projectsHook.formData}
+        currentDraftId={projectsHook.currentDraftId}
+        importPreview={projectsHook.importPreview}
         onFormDataChange={projectsHook.setFormData}
         onAddProject={projectsHook.handleAddProject}
         onEditProject={projectsHook.handleEditProject}
         onSaveProject={projectsHook.handleSaveProject}
+        onSaveDraft={async () => {
+          await projectsHook.handleSaveDraft();
+        }}
+        drafts={projectsHook.drafts}
+        onRestoreDraft={async (draftId) => {
+          await projectsHook.restoreDraft(draftId);
+        }}
+        onDeleteDraft={async (draftId) => {
+          await projectsHook.deleteDraft(draftId);
+        }}
+        importError={projectsHook.importError}
+        isImporting={projectsHook.isImporting}
+        importSessionPasscode={projectsHook.importSessionPasscode}
+        onImportSessionPasscodeChange={projectsHook.setImportSessionPasscode}
+        frontendAiConfig={projectsHook.frontendAiConfig}
+        onFrontendAiConfigChange={projectsHook.setFrontendAiConfig}
+        onSaveAiSettings={projectsHook.saveAiSettings}
+        isAiSettingsDirty={projectsHook.isAiSettingsDirty}
+        isSavingAiSettings={projectsHook.isSavingAiSettings}
+        aiModelOptions={projectsHook.aiModelOptions}
+        isLoadingAiModels={projectsHook.isLoadingAiModels}
+        onLoadAiModels={async () => {
+          await projectsHook.loadAiModels();
+        }}
+        onTestAiConfig={async () => {
+          await projectsHook.testAiConfig();
+        }}
+        onImportFromUrl={projectsHook.importFromUrl}
+        batchImportPreview={projectsHook.batchImportPreview}
+        onAnalyzeBatchImport={projectsHook.analyzeBatchImport}
+        onImportBatch={projectsHook.importBatch}
+        onClearBatchImportPreview={projectsHook.clearBatchImportPreview}
         deleteProjectId={projectsHook.deleteProjectId}
         onDeleteProjectIdChange={projectsHook.setDeleteProjectId}
         onDeleteProject={projectsHook.handleDeleteProject}

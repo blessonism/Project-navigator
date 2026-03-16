@@ -77,13 +77,42 @@ CREATE TRIGGER update_projects_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
--- 3. User Settings 表
+-- 3. Project Drafts 表
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS project_drafts (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  source_url TEXT NOT NULL DEFAULT '',
+  source_type TEXT NOT NULL DEFAULT 'website',
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE project_drafts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow all operations on drafts" ON project_drafts;
+CREATE POLICY "Allow all operations on drafts" ON project_drafts FOR ALL USING (true);
+
+DROP TRIGGER IF EXISTS update_project_drafts_updated_at ON project_drafts;
+CREATE TRIGGER update_project_drafts_updated_at
+  BEFORE UPDATE ON project_drafts
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- 4. User Settings 表
 -- ============================================
 
 CREATE TABLE IF NOT EXISTS user_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
   show_images BOOLEAN DEFAULT true,
   theme TEXT DEFAULT 'default',
+  ai_enabled BOOLEAN DEFAULT false,
+  ai_base_url TEXT DEFAULT '',
+  ai_model TEXT DEFAULT 'gpt-4.1-mini',
+  ai_api_key TEXT DEFAULT '',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -103,12 +132,12 @@ CREATE TRIGGER update_user_settings_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- 插入默认设置（如果不存在）
-INSERT INTO user_settings (id, show_images, theme)
-VALUES ('default', true, 'default')
+INSERT INTO user_settings (id, show_images, theme, ai_enabled, ai_base_url, ai_model, ai_api_key)
+VALUES ('default', true, 'default', false, '', 'gpt-4.1-mini', '')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================
--- 4. 验证表结构
+-- 5. 验证表结构
 -- ============================================
 
 -- 查看 projects 表结构
@@ -123,8 +152,14 @@ FROM information_schema.columns
 WHERE table_name = 'user_settings'
 ORDER BY ordinal_position;
 
+-- 查看 project_drafts 表结构
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'project_drafts'
+ORDER BY ordinal_position;
+
 -- ============================================
--- 5. 示例数据（可选）
+-- 6. 示例数据（可选）
 -- ============================================
 -- 如需初始化示例数据，取消以下注释并执行
 
@@ -175,7 +210,10 @@ ORDER BY created_at DESC;
 --   - 显示控制：show_gallery, show_overview, show_tech_stack, show_challenges, show_timeline
 --   - 时间戳：created_at, updated_at
 --
--- user_settings 表（5 列）：
---   - id, show_images, theme, created_at, updated_at
+-- project_drafts 表（7 列）：
+--   - id, title, source_url, source_type, payload, created_at, updated_at
+--
+-- user_settings 表（9 列）：
+--   - id, show_images, theme, ai_enabled, ai_base_url, ai_model, ai_api_key, created_at, updated_at
 --
 -- ============================================

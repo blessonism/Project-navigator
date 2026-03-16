@@ -71,6 +71,51 @@ export interface ProjectFormData {
   showTimeline: boolean;
 }
 
+export type ImportSourceType = 'github' | 'website';
+
+export interface FrontendAiConfig {
+  enabled: boolean;
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+}
+
+export interface ImportPreview {
+  sourceUrl: string;
+  sourceType: ImportSourceType;
+  normalizedProject: Partial<Project>;
+  rawMetadata: Record<string, unknown>;
+  warnings: string[];
+  confidence: number;
+}
+
+export interface ProjectDraft {
+  id: string;
+  title: string;
+  sourceUrl: string;
+  sourceType: ImportSourceType;
+  payload: ProjectFormData;
+  updatedAt: string;
+}
+
+export type BatchImportStatus = 'valid' | 'duplicate' | 'invalid';
+
+export interface BatchImportItem {
+  index: number;
+  status: BatchImportStatus;
+  raw: unknown;
+  project?: Project;
+  errors: string[];
+  duplicateBy?: 'liveUrl' | 'githubUrl';
+}
+
+export interface BatchImportPreview {
+  items: BatchImportItem[];
+  validItems: BatchImportItem[];
+  duplicateItems: BatchImportItem[];
+  invalidItems: BatchImportItem[];
+}
+
 export type ProjectStatus = Project['status'];
 export type TimelineEventType = TimelineEvent['type'];
 export type TechCategory = TechStackItem['category'];

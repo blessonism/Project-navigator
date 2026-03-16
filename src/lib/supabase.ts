@@ -55,3 +55,13 @@ export interface SupabaseProject {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface SupabaseProjectDraft {
+  id: string;
+  title: string;
+  source_url: string;
+  source_type: 'github' | 'website';
+  payload: Record<string, unknown>;
+  updated_at?: string;
+  created_at?: string;
+}

@@ -1,20 +1,35 @@
-import { supabase, isSupabaseConfigured, SupabaseProject } from './supabase';
+import {
+  supabase,
+  isSupabaseConfigured,
+  SupabaseProject,
+  SupabaseProjectDraft,
+} from './supabase';
 import { safeLocalStorage } from './storageDetector';
 import { logger } from './logger';
-import type { Project, TechStackItem, Challenge, TimelineEvent } from '@/types/project';
+import {
+  deserializeProjectDrafts,
+  sanitizeProjectFormData,
+  serializeProjectDrafts,
+} from './projectDraftSerializer';
+import type { Project, TechStackItem, Challenge, TimelineEvent, ProjectDraft } from '@/types/project';
 
-export type { Project, TechStackItem, Challenge, TimelineEvent };
+export type { Project, TechStackItem, Challenge, TimelineEvent, ProjectDraft };
 
 // 存储服务接口
 export interface StorageService {
   loadProjects(): Promise<Project[]>;
   saveProjects(projects: Project[]): Promise<void>;
+  saveProjectsBatch(projects: Project[]): Promise<void>;
+  loadProjectDrafts(): Promise<ProjectDraft[]>;
+  saveProjectDraft(draft: ProjectDraft): Promise<void>;
+  deleteProjectDraft(id: string): Promise<void>;
   migrateFromLocalStorage(): Promise<void>;
 }
 
 // 混合存储实现：Supabase 优先，localStorage 降级
 class HybridStorage implements StorageService {
   private readonly STORAGE_KEY = 'projects';
+  private readonly DRAFT_STORAGE_KEY = 'project_drafts';
   private readonly MIGRATION_KEY = 'supabase_migrated';
 
   // 将 Project 转换为 Supabase 格式
@@ -75,6 +90,30 @@ class HybridStorage implements StorageService {
     };
   }
 
+  private projectDraftToSupabase(
+    draft: ProjectDraft
+  ): Omit<SupabaseProjectDraft, 'created_at' | 'updated_at'> {
+    return {
+      id: draft.id,
+      title: draft.title,
+      source_url: draft.sourceUrl,
+      source_type: draft.sourceType,
+      payload: draft.payload as unknown as Record<string, unknown>,
+    };
+  }
+
+  private supabaseToProjectDraft(supabaseDraft: SupabaseProjectDraft): ProjectDraft {
+    const payload = sanitizeProjectFormData(supabaseDraft.payload);
+    return {
+      id: supabaseDraft.id,
+      title: supabaseDraft.title,
+      sourceUrl: supabaseDraft.source_url,
+      sourceType: supabaseDraft.source_type,
+      payload,
+      updatedAt: supabaseDraft.updated_at || new Date(0).toISOString(),
+    };
+  }
+
   // 检查是否已有云端数据
   private async hasCloudData(): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
@@ -101,8 +140,17 @@ class HybridStorage implements StorageService {
     }
   }
 
+  private loadDraftsFromLocalStorage(): ProjectDraft[] {
+    const saved = safeLocalStorage.getItem(this.DRAFT_STORAGE_KEY);
+    return deserializeProjectDrafts(saved);
+  }
+
   getLocalProjectsSnapshot(): Project[] {
     return this.loadFromLocalStorage();
+  }
+
+  getLocalProjectDraftsSnapshot(): ProjectDraft[] {
+    return this.loadDraftsFromLocalStorage();
   }
 
   // 保存到 localStorage
@@ -111,6 +159,14 @@ class HybridStorage implements StorageService {
       safeLocalStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
     } catch (error) {
       logger.warn('保存到 localStorage 失败:', error);
+    }
+  }
+
+  private saveDraftsToLocalStorage(drafts: ProjectDraft[]): void {
+    try {
+      safeLocalStorage.setItem(this.DRAFT_STORAGE_KEY, serializeProjectDrafts(drafts));
+    } catch (error) {
+      logger.warn('保存草稿到 localStorage 失败:', error);
     }
   }
 
@@ -128,6 +184,21 @@ class HybridStorage implements StorageService {
     if (error) throw error;
 
     return (data || []).map((item) => this.supabaseToProject(item));
+  }
+
+  private async loadDraftsFromSupabase(): Promise<ProjectDraft[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase 未配置');
+    }
+
+    const { data, error } = await supabase
+      .from('project_drafts')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((item) => this.supabaseToProjectDraft(item));
   }
 
   // 保存到 Supabase
@@ -152,6 +223,29 @@ class HybridStorage implements StorageService {
     });
 
     if (upsertError) throw upsertError;
+  }
+
+  private async saveDraftToSupabase(draft: ProjectDraft): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase 未配置');
+    }
+
+    const supabaseDraft = this.projectDraftToSupabase(draft);
+    const { error } = await supabase.from('project_drafts').upsert(supabaseDraft, {
+      onConflict: 'id',
+      ignoreDuplicates: false,
+    });
+
+    if (error) throw error;
+  }
+
+  private async deleteDraftFromSupabase(id: string): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase 未配置');
+    }
+
+    const { error } = await supabase.from('project_drafts').delete().eq('id', id);
+    if (error) throw error;
   }
 
   // 加载项目数据
@@ -186,6 +280,55 @@ class HybridStorage implements StorageService {
       } catch (error) {
         logger.warn('同步到 Supabase 失败，数据已保存到本地:', error);
         // 不抛出错误，因为本地保存已成功
+      }
+    }
+  }
+
+  async saveProjectsBatch(projects: Project[]): Promise<void> {
+    await this.saveProjects(projects);
+  }
+
+  async loadProjectDrafts(): Promise<ProjectDraft[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const drafts = await this.loadDraftsFromSupabase();
+        this.saveDraftsToLocalStorage(drafts);
+        return drafts;
+      } catch (error) {
+        logger.warn('从 Supabase 加载草稿失败，降级到 localStorage:', error);
+        return this.loadDraftsFromLocalStorage();
+      }
+    }
+
+    return this.loadDraftsFromLocalStorage();
+  }
+
+  async saveProjectDraft(draft: ProjectDraft): Promise<void> {
+    const currentDrafts = this.loadDraftsFromLocalStorage();
+    const nextDrafts = [draft, ...currentDrafts.filter((item) => item.id !== draft.id)].sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+
+    this.saveDraftsToLocalStorage(nextDrafts);
+
+    if (isSupabaseConfigured()) {
+      try {
+        await this.saveDraftToSupabase(draft);
+      } catch (error) {
+        logger.warn('同步草稿到 Supabase 失败，已保存在本地:', error);
+      }
+    }
+  }
+
+  async deleteProjectDraft(id: string): Promise<void> {
+    const nextDrafts = this.loadDraftsFromLocalStorage().filter((item) => item.id !== id);
+    this.saveDraftsToLocalStorage(nextDrafts);
+
+    if (isSupabaseConfigured()) {
+      try {
+        await this.deleteDraftFromSupabase(id);
+      } catch (error) {
+        logger.warn('删除云端草稿失败，本地已删除:', error);
       }
     }
   }
@@ -233,8 +376,13 @@ export const storageService = new HybridStorage();
 // 便捷函数
 export const loadProjects = () => storageService.loadProjects();
 export const saveProjects = (projects: Project[]) => storageService.saveProjects(projects);
+export const saveProjectsBatch = (projects: Project[]) => storageService.saveProjectsBatch(projects);
+export const loadProjectDrafts = () => storageService.loadProjectDrafts();
+export const saveProjectDraft = (draft: ProjectDraft) => storageService.saveProjectDraft(draft);
+export const deleteProjectDraft = (id: string) => storageService.deleteProjectDraft(id);
 export const migrateFromLocalStorage = () => storageService.migrateFromLocalStorage();
 export const getLocalProjectsSnapshot = () => storageService.getLocalProjectsSnapshot();
+export const getLocalProjectDraftsSnapshot = () => storageService.getLocalProjectDraftsSnapshot();
 
 // ============================================
 // 用户设置管理
@@ -244,6 +392,10 @@ export const getLocalProjectsSnapshot = () => storageService.getLocalProjectsSna
 export interface UserSettings {
   showImages: boolean;
   theme: string;
+  aiEnabled: boolean;
+  aiBaseUrl: string;
+  aiModel: string;
+  aiApiKey: string;
 }
 
 // Supabase 设置类型
@@ -251,6 +403,10 @@ interface SupabaseSettings {
   id: string;
   show_images: boolean;
   theme: string;
+  ai_enabled: boolean;
+  ai_base_url: string;
+  ai_model: string;
+  ai_api_key: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -260,6 +416,10 @@ class SettingsManager {
   private readonly SETTINGS_ID = 'default';
   private readonly SHOW_IMAGES_KEY = 'showImages';
   private readonly THEME_KEY = 'navigator-theme';
+  private readonly AI_ENABLED_KEY = 'navigator-ai-enabled';
+  private readonly AI_BASE_URL_KEY = 'navigator-ai-base-url';
+  private readonly AI_MODEL_KEY = 'navigator-ai-model';
+  private readonly AI_API_KEY_KEY = 'navigator-ai-api-key';
 
   // 从 Supabase 加载设置
   private async loadFromSupabase(): Promise<UserSettings | null> {
@@ -285,6 +445,10 @@ class SettingsManager {
       return {
         showImages: data.show_images,
         theme: data.theme,
+        aiEnabled: Boolean(data.ai_enabled),
+        aiBaseUrl: typeof data.ai_base_url === 'string' ? data.ai_base_url : '',
+        aiModel: typeof data.ai_model === 'string' && data.ai_model.trim() ? data.ai_model : 'gpt-4.1-mini',
+        aiApiKey: typeof data.ai_api_key === 'string' ? data.ai_api_key : '',
       };
     } catch (error) {
       logger.warn('从 Supabase 加载设置失败:', error);
@@ -302,6 +466,10 @@ class SettingsManager {
         id: this.SETTINGS_ID,
         show_images: settings.showImages,
         theme: settings.theme,
+        ai_enabled: settings.aiEnabled,
+        ai_base_url: settings.aiBaseUrl,
+        ai_model: settings.aiModel,
+        ai_api_key: settings.aiApiKey,
       };
 
       const { error } = await supabase.from('user_settings').upsert(supabaseSettings, {
@@ -319,10 +487,18 @@ class SettingsManager {
   private loadFromLocalStorage(): UserSettings {
     const showImages = safeLocalStorage.getItem(this.SHOW_IMAGES_KEY);
     const theme = safeLocalStorage.getItem(this.THEME_KEY);
+    const aiEnabled = safeLocalStorage.getItem(this.AI_ENABLED_KEY);
+    const aiBaseUrl = safeLocalStorage.getItem(this.AI_BASE_URL_KEY);
+    const aiModel = safeLocalStorage.getItem(this.AI_MODEL_KEY);
+    const aiApiKey = safeLocalStorage.getItem(this.AI_API_KEY_KEY);
 
     return {
       showImages: showImages !== null ? showImages === 'true' : true,
       theme: theme || 'default',
+      aiEnabled: aiEnabled === 'true',
+      aiBaseUrl: aiBaseUrl || '',
+      aiModel: aiModel || 'gpt-4.1-mini',
+      aiApiKey: aiApiKey || '',
     };
   }
 
@@ -334,6 +510,10 @@ class SettingsManager {
   private saveToLocalStorage(settings: UserSettings): void {
     safeLocalStorage.setItem(this.SHOW_IMAGES_KEY, String(settings.showImages));
     safeLocalStorage.setItem(this.THEME_KEY, settings.theme);
+    safeLocalStorage.setItem(this.AI_ENABLED_KEY, String(settings.aiEnabled));
+    safeLocalStorage.setItem(this.AI_BASE_URL_KEY, settings.aiBaseUrl);
+    safeLocalStorage.setItem(this.AI_MODEL_KEY, settings.aiModel);
+    safeLocalStorage.setItem(this.AI_API_KEY_KEY, settings.aiApiKey);
   }
 
   // 加载设置（优先从 Supabase）
