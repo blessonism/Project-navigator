@@ -19,6 +19,8 @@ export interface TimelineEvent {
   type: 'milestone' | 'feature' | 'bugfix' | 'release';
 }
 
+export type ProjectVisibility = 'public' | 'admin-only';
+
 export interface Project {
   id: string;
   title: string;
@@ -29,6 +31,7 @@ export interface Project {
   category: string;
   image?: string;
   status: 'live' | 'development' | 'archived';
+  visibility?: ProjectVisibility;
   order?: number;
 
   detailedDescription?: string;
@@ -55,6 +58,7 @@ export interface ProjectFormData {
   category: string;
   image: string;
   status: 'live' | 'development' | 'archived';
+  visibility: ProjectVisibility;
 
   detailedDescription: string;
   screenshots: string;

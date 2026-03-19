@@ -71,7 +71,7 @@ const App: React.FC = () => {
 
   return (
     <PublicView
-      projects={projectsHook.projects}
+      projects={projectsHook.publicProjects}
       filteredProjects={projectsHook.filteredProjects}
       isProjectsLoading={projectsHook.isProjectsLoading}
       showImages={projectsHook.showImages}

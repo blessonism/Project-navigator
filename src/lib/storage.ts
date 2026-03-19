@@ -11,9 +11,98 @@ import {
   sanitizeProjectFormData,
   serializeProjectDrafts,
 } from './projectDraftSerializer';
+import { resolveProjectVisibility } from './projectVisibility';
 import type { Project, TechStackItem, Challenge, TimelineEvent, ProjectDraft } from '@/types/project';
 
 export type { Project, TechStackItem, Challenge, TimelineEvent, ProjectDraft };
+
+type SupabaseProjectWritePayload = Omit<SupabaseProject, 'created_at' | 'updated_at'>;
+
+const getErrorText = (error: unknown): string => {
+  if (!error) return '';
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const message = Reflect.get(error, 'message');
+    return typeof message === 'string' ? message : '';
+  }
+
+  return '';
+};
+
+export const isProjectsOrderColumnMissingError = (error: unknown): boolean => {
+  const message = getErrorText(error).toLowerCase();
+  return message.includes('projects.order') && message.includes('does not exist');
+};
+
+export const stripOrderFromSupabaseProject = (
+  project: SupabaseProjectWritePayload
+): Omit<SupabaseProjectWritePayload, 'order'> => {
+  const { order, ...legacyProject } = project;
+  return legacyProject;
+};
+
+export const mapProjectToSupabasePayload = (
+  project: Project
+): SupabaseProjectWritePayload => {
+  return {
+    id: project.id,
+    title: project.title,
+    description: project.description,
+    live_url: project.liveUrl,
+    github_url: project.githubUrl,
+    tags: project.tags,
+    category: project.category,
+    image: project.image,
+    status: project.status,
+    visibility: resolveProjectVisibility(project.visibility),
+    order: project.order ?? 0,
+    detailed_description: project.detailedDescription,
+    screenshots: project.screenshots || [],
+    tech_stack: project.techStack || [],
+    features: project.features || [],
+    challenges: project.challenges || [],
+    timeline: project.timeline || [],
+    start_date: project.startDate,
+    duration: project.duration,
+    show_gallery: project.showGallery,
+    show_overview: project.showOverview,
+    show_tech_stack: project.showTechStack,
+    show_challenges: project.showChallenges,
+    show_timeline: project.showTimeline,
+  };
+};
+
+export const mapSupabaseProjectToProject = (supabaseProject: SupabaseProject): Project => {
+  return {
+    id: supabaseProject.id,
+    title: supabaseProject.title,
+    description: supabaseProject.description,
+    liveUrl: supabaseProject.live_url,
+    githubUrl: supabaseProject.github_url,
+    tags: supabaseProject.tags,
+    category: supabaseProject.category,
+    image: supabaseProject.image,
+    status: supabaseProject.status,
+    visibility: resolveProjectVisibility(supabaseProject.visibility),
+    order: supabaseProject.order,
+    detailedDescription: supabaseProject.detailed_description,
+    screenshots: supabaseProject.screenshots,
+    techStack: supabaseProject.tech_stack,
+    features: supabaseProject.features,
+    challenges: supabaseProject.challenges,
+    timeline: supabaseProject.timeline,
+    startDate: supabaseProject.start_date,
+    duration: supabaseProject.duration,
+    showGallery: supabaseProject.show_gallery,
+    showOverview: supabaseProject.show_overview,
+    showTechStack: supabaseProject.show_tech_stack,
+    showChallenges: supabaseProject.show_challenges,
+    showTimeline: supabaseProject.show_timeline,
+  };
+};
 
 // 存储服务接口
 export interface StorageService {
@@ -33,61 +122,13 @@ class HybridStorage implements StorageService {
   private readonly MIGRATION_KEY = 'supabase_migrated';
 
   // 将 Project 转换为 Supabase 格式
-  private projectToSupabase(project: Project): Omit<SupabaseProject, 'created_at' | 'updated_at'> {
-    return {
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      live_url: project.liveUrl,
-      github_url: project.githubUrl,
-      tags: project.tags,
-      category: project.category,
-      image: project.image,
-      status: project.status,
-      order: project.order ?? 0,
-      detailed_description: project.detailedDescription,
-      screenshots: project.screenshots || [],
-      tech_stack: project.techStack || [],
-      features: project.features || [],
-      challenges: project.challenges || [],
-      timeline: project.timeline || [],
-      start_date: project.startDate,
-      duration: project.duration,
-      show_gallery: project.showGallery,
-      show_overview: project.showOverview,
-      show_tech_stack: project.showTechStack,
-      show_challenges: project.showChallenges,
-      show_timeline: project.showTimeline,
-    };
+  private projectToSupabase(project: Project): SupabaseProjectWritePayload {
+    return mapProjectToSupabasePayload(project);
   }
 
   // 将 Supabase 格式转换为 Project
   private supabaseToProject(supabaseProject: SupabaseProject): Project {
-    return {
-      id: supabaseProject.id,
-      title: supabaseProject.title,
-      description: supabaseProject.description,
-      liveUrl: supabaseProject.live_url,
-      githubUrl: supabaseProject.github_url,
-      tags: supabaseProject.tags,
-      category: supabaseProject.category,
-      image: supabaseProject.image,
-      status: supabaseProject.status,
-      order: supabaseProject.order,
-      detailedDescription: supabaseProject.detailed_description,
-      screenshots: supabaseProject.screenshots,
-      techStack: supabaseProject.tech_stack,
-      features: supabaseProject.features,
-      challenges: supabaseProject.challenges,
-      timeline: supabaseProject.timeline,
-      startDate: supabaseProject.start_date,
-      duration: supabaseProject.duration,
-      showGallery: supabaseProject.show_gallery,
-      showOverview: supabaseProject.show_overview,
-      showTechStack: supabaseProject.show_tech_stack,
-      showChallenges: supabaseProject.show_challenges,
-      showTimeline: supabaseProject.show_timeline,
-    };
+    return mapSupabaseProjectToProject(supabaseProject);
   }
 
   private projectDraftToSupabase(
@@ -181,7 +222,23 @@ class HybridStorage implements StorageService {
       .select('*')
       .order('order', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      if (!isProjectsOrderColumnMissingError(error)) {
+        throw error;
+      }
+
+      logger.warn('projects 表缺少 order 列，改为按 created_at 回退加载');
+
+      const { data: legacyData, error: legacyError } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true });
+
+      if (legacyError) throw legacyError;
+
+      return (legacyData || []).map((item) => this.supabaseToProject(item));
+    }
 
     return (data || []).map((item) => this.supabaseToProject(item));
   }
@@ -222,7 +279,21 @@ class HybridStorage implements StorageService {
       ignoreDuplicates: false,
     });
 
-    if (upsertError) throw upsertError;
+    if (upsertError) {
+      if (!isProjectsOrderColumnMissingError(upsertError)) {
+        throw upsertError;
+      }
+
+      logger.warn('projects 表缺少 order 列，改为去除 order 字段后重试保存');
+
+      const legacyProjects = supabaseProjects.map((project) => stripOrderFromSupabaseProject(project));
+      const { error: legacyUpsertError } = await supabase.from('projects').upsert(legacyProjects, {
+        onConflict: 'id',
+        ignoreDuplicates: false,
+      });
+
+      if (legacyUpsertError) throw legacyUpsertError;
+    }
   }
 
   private async saveDraftToSupabase(draft: ProjectDraft): Promise<void> {

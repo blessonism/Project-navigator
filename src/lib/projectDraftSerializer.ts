@@ -1,4 +1,5 @@
 import type { ImportSourceType, ProjectDraft, ProjectFormData } from '@/types/project';
+import { resolveProjectVisibility } from './projectVisibility';
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> => {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -20,6 +21,7 @@ const emptyPayload: ProjectFormData = {
   category: 'web',
   image: '',
   status: 'live',
+  visibility: 'public',
   detailedDescription: '',
   screenshots: '',
   features: '',
@@ -62,6 +64,7 @@ export const sanitizeProjectFormData = (value: unknown): ProjectFormData => {
     category: getText('category') || 'web',
     image: getText('image'),
     status: normalizedStatus,
+    visibility: resolveProjectVisibility(value.visibility),
     detailedDescription: getText('detailedDescription'),
     screenshots: getText('screenshots'),
     features: getText('features'),

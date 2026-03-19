@@ -24,6 +24,7 @@ export const defaultProjects: Project[] = [
     tags: ['React', 'Node.js', 'MongoDB', 'Stripe'],
     category: 'web',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800&h=600&fit=crop',
     detailedDescription: `# E-Commerce Platform
 
@@ -173,6 +174,7 @@ export const defaultProjects: Project[] = [
     tags: ['Vue.js', 'Firebase', 'Tailwind CSS'],
     category: 'web',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1540350394557-8d14678e7f91?w=800&h=600&fit=crop',
     detailedDescription: `# Task Management App
 
@@ -329,6 +331,7 @@ export const defaultProjects: Project[] = [
     tags: ['React', 'TypeScript', 'Chart.js', 'API'],
     category: 'web',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=800&h=600&fit=crop',
   },
   {
@@ -340,6 +343,7 @@ export const defaultProjects: Project[] = [
     tags: ['Next.js', 'OpenAI', 'Prisma', 'PostgreSQL'],
     category: 'tool',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
   },
   {
@@ -351,6 +355,7 @@ export const defaultProjects: Project[] = [
     tags: ['Python', 'Django', 'React', 'TensorFlow'],
     category: 'analytics',
     status: 'development',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop',
   },
   {
@@ -362,6 +367,7 @@ export const defaultProjects: Project[] = [
     tags: ['React Native', 'Redux', 'Express', 'MySQL'],
     category: 'mobile',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&h=600&fit=crop',
   },
   {
@@ -373,6 +379,7 @@ export const defaultProjects: Project[] = [
     tags: ['Next.js', 'Contentful', 'GraphQL'],
     category: 'tool',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=600&fit=crop',
   },
   {
@@ -383,6 +390,7 @@ export const defaultProjects: Project[] = [
     tags: ['React', 'AWS', 'Node.js', 'Redis'],
     category: 'web',
     status: 'development',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=600&fit=crop',
   },
   {
@@ -394,6 +402,7 @@ export const defaultProjects: Project[] = [
     tags: ['Svelte', 'Supabase', 'Prism.js'],
     category: 'tool',
     status: 'live',
+    visibility: 'public',
     image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=600&fit=crop',
   },
 ];

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getProjectVisibilityLabel, resolveProjectVisibility } from '@/lib/projectVisibility';
 import type { Project } from '@/types/project';
 
 interface ProjectListProps {
@@ -46,6 +47,7 @@ const SortableProjectCard: React.FC<SortableProjectCardProps> = ({
   onDelete,
   isMobile,
 }) => {
+  const resolvedVisibility = resolveProjectVisibility(project.visibility);
   const {
     attributes,
     listeners,
@@ -80,6 +82,16 @@ const SortableProjectCard: React.FC<SortableProjectCardProps> = ({
                 <CardTitle className="text-base sm:text-lg">{project.title}</CardTitle>
                 <Badge variant="outline" className={getStatusColor(project.status)}>
                   {project.status}
+                </Badge>
+                <Badge
+                  variant="secondary"
+                  className={
+                    resolvedVisibility === 'admin-only'
+                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-100'
+                      : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                  }
+                >
+                  {getProjectVisibilityLabel(project.visibility)}
                 </Badge>
               </div>
               <CardDescription className="line-clamp-4">{project.description}</CardDescription>

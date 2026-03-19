@@ -22,6 +22,11 @@ import {
   isMeaningfulFormData,
   mergeImportPreviewToFormData,
 } from '@/lib/projectImport';
+import {
+  filterPublicProjects,
+  getPublicProjects,
+  resolveProjectVisibility,
+} from '@/lib/projectVisibility';
 import { logger } from '@/lib/logger';
 import { defaultProjects } from '@/constants/defaultProjects';
 import type {
@@ -45,6 +50,7 @@ const emptyFormData: ProjectFormData = {
   category: 'web',
   image: '',
   status: 'live',
+  visibility: 'public',
   detailedDescription: '',
   screenshots: '',
   features: '',
@@ -124,6 +130,7 @@ const resolveInitialFrontendAiConfig = (
 
 export interface UseProjectsReturn {
   projects: Project[];
+  publicProjects: Project[];
   filteredProjects: Project[];
   isProjectsLoading: boolean;
   searchQuery: string;
@@ -225,17 +232,9 @@ export function useProjects(): UseProjectsReturn {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
+  const publicProjects = useMemo(() => getPublicProjects(projects), [projects]);
   const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
-      const matchesSearch =
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      const matchesCategory = selectedCategory === 'all' || project.category === selectedCategory;
-
-      return matchesSearch && matchesCategory;
-    });
+    return filterPublicProjects(projects, searchQuery, selectedCategory);
   }, [projects, searchQuery, selectedCategory]);
 
   const normalizedFrontendAiConfig = useMemo(
@@ -787,6 +786,7 @@ export function useProjects(): UseProjectsReturn {
       category: project.category,
       image: project.image || '',
       status: project.status,
+      visibility: resolveProjectVisibility(project.visibility),
       detailedDescription: project.detailedDescription || '',
       screenshots: project.screenshots?.join(', ') || '',
       features: project.features?.join(', ') || '',
@@ -862,6 +862,7 @@ export function useProjects(): UseProjectsReturn {
               category: formData.category,
               image: formData.image || undefined,
               status: formData.status,
+              visibility: formData.visibility,
               detailedDescription: formData.detailedDescription || undefined,
               screenshots: screenshotsArray.length > 0 ? screenshotsArray : undefined,
               features: featuresArray.length > 0 ? featuresArray : undefined,
@@ -896,6 +897,7 @@ export function useProjects(): UseProjectsReturn {
         category: formData.category,
         image: formData.image || undefined,
         status: formData.status,
+        visibility: formData.visibility,
         order: projects.length,
         detailedDescription: formData.detailedDescription || undefined,
         screenshots: screenshotsArray.length > 0 ? screenshotsArray : undefined,
@@ -982,6 +984,7 @@ export function useProjects(): UseProjectsReturn {
 
   return {
     projects,
+    publicProjects,
     filteredProjects,
     isProjectsLoading,
     searchQuery,

@@ -202,6 +202,7 @@ const createBatchImportItem = (
     category: normalizeCategory(row.category),
     image: normalizeOptionalUrl(row.image),
     status: normalizeStatus(row.status),
+    visibility: 'public',
     order: 0,
     detailedDescription,
     screenshots,

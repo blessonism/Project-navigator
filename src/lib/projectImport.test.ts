@@ -53,6 +53,7 @@ describe('createBatchImportPreview', () => {
     expect(preview.invalidItems).toHaveLength(1);
     expect(preview.duplicateItems[0].duplicateBy).toBe('liveUrl');
     expect(preview.validItems[0].project?.title).toBe('有效项目');
+    expect(preview.validItems[0].project?.visibility).toBe('public');
   });
 
   it('JSON 非数组时应返回 invalid 预览', () => {

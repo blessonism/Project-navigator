@@ -17,6 +17,7 @@ const draftA: ProjectDraft = {
     category: 'web',
     image: '',
     status: 'live',
+    visibility: 'public',
     detailedDescription: '',
     screenshots: '',
     features: '',
@@ -69,5 +70,6 @@ describe('projectDraftSerializer', () => {
     expect(drafts).toHaveLength(1);
     expect(drafts[0].payload.showGallery).toBe(true);
     expect(drafts[0].sourceType).toBe('website');
+    expect(drafts[0].payload.visibility).toBe('public');
   });
 });

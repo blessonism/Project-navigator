@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import type { ImportPreview, Project, ProjectFormData } from '@/types/project';
+import type { ImportPreview, Project, ProjectFormData, ProjectVisibility } from '@/types/project';
 import { ImageUpload } from './ImageUpload';
 
 interface ProjectFormDialogProps {
@@ -167,7 +167,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">项目分类 *</Label>
                 <Select
@@ -200,6 +200,23 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
                     <SelectItem value="live">Live</SelectItem>
                     <SelectItem value="development">Development</SelectItem>
                     <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="visibility">可见范围 *</Label>
+                <Select
+                  value={formData.visibility}
+                  onValueChange={(value: ProjectVisibility) =>
+                    onFormDataChange({ ...formData, visibility: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">面向大众</SelectItem>
+                    <SelectItem value="admin-only">仅面向管理员</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
