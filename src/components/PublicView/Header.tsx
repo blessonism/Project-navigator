@@ -2,12 +2,16 @@ import React from 'react';
 import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import type { ProjectAudience } from '@/lib/projectVisibility';
 
 interface HeaderProps {
   projectCount: number;
   filteredCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  isAdminAuthenticated: boolean;
+  publicViewAudience: ProjectAudience;
+  onPublicViewAudienceChange: (audience: ProjectAudience) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,6 +19,9 @@ export const Header: React.FC<HeaderProps> = ({
   filteredCount,
   searchQuery,
   onSearchChange,
+  isAdminAuthenticated,
+  publicViewAudience,
+  onPublicViewAudienceChange,
 }) => {
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -27,12 +34,40 @@ export const Header: React.FC<HeaderProps> = ({
                 A collection of {projectCount} deployed projects
               </p>
             </div>
-            <Badge
-              variant="outline"
-              className="shrink-0 whitespace-nowrap px-2 py-0 text-xs sm:px-2.5 sm:py-0.5 sm:text-sm"
-            >
-              {filteredCount} Projects
-            </Badge>
+            <div className="flex items-center gap-2">
+              {isAdminAuthenticated && (
+                <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
+                  <button
+                    type="button"
+                    onClick={() => onPublicViewAudienceChange('public')}
+                    className={`rounded-md px-2 py-1 text-xs transition-colors sm:px-3 ${
+                      publicViewAudience === 'public'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    大众视角
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onPublicViewAudienceChange('admin')}
+                    className={`rounded-md px-2 py-1 text-xs transition-colors sm:px-3 ${
+                      publicViewAudience === 'admin'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    管理员视角
+                  </button>
+                </div>
+              )}
+              <Badge
+                variant="outline"
+                className="shrink-0 whitespace-nowrap px-2 py-0 text-xs sm:px-2.5 sm:py-0.5 sm:text-sm"
+              >
+                {filteredCount} Projects
+              </Badge>
+            </div>
           </div>
 
           <div className="relative max-w-md">

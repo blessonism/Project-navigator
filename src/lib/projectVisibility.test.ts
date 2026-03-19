@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { filterPublicProjects, getPublicProjects, resolveProjectVisibility } from './projectVisibility';
+import {
+  filterProjectsByAudience,
+  filterPublicProjects,
+  getProjectsForAudience,
+  getPublicProjects,
+  resolveProjectVisibility,
+} from './projectVisibility';
 import type { Project } from '@/types/project';
 
 const baseProject: Project = {
@@ -63,5 +69,30 @@ describe('projectVisibility', () => {
       '1',
     ]);
     expect(filterPublicProjects(projects, '', 'tool').map((project) => project.id)).toEqual(['3']);
+  });
+
+  it('管理员视角应返回全部项目，并允许搜索到 admin-only 项目', () => {
+    const projects: Project[] = [
+      {
+        ...baseProject,
+        id: '1',
+        title: '公开项目',
+      },
+      {
+        ...baseProject,
+        id: '2',
+        title: '管理员项目',
+        tags: ['Internal'],
+        visibility: 'admin-only',
+      },
+    ];
+
+    expect(getProjectsForAudience(projects, 'admin').map((project) => project.id)).toEqual([
+      '1',
+      '2',
+    ]);
+    expect(
+      filterProjectsByAudience(projects, 'admin', 'internal', 'all').map((project) => project.id)
+    ).toEqual(['2']);
   });
 });

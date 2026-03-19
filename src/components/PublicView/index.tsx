@@ -5,6 +5,7 @@ import { ProjectGrid } from './ProjectGrid';
 import { Footer } from './Footer';
 import { AuthDialog } from '@/components/AuthDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { ProjectAudience } from '@/lib/projectVisibility';
 import type { Project } from '@/types/project';
 
 const ProjectDetailDialog = lazy(() => import('@/components/ProjectDetailDialog'));
@@ -31,6 +32,9 @@ interface PublicViewProps {
   onSearchChange: (query: string) => void;
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  isAdminAuthenticated: boolean;
+  publicViewAudience: ProjectAudience;
+  onPublicViewAudienceChange: (audience: ProjectAudience) => void;
   getStatusColor: (status: string) => string;
 
   selectedProject: Project | null;
@@ -58,6 +62,9 @@ export const PublicView: React.FC<PublicViewProps> = ({
   onSearchChange,
   selectedCategory,
   onCategoryChange,
+  isAdminAuthenticated,
+  publicViewAudience,
+  onPublicViewAudienceChange,
   getStatusColor,
 
   selectedProject,
@@ -82,6 +89,9 @@ export const PublicView: React.FC<PublicViewProps> = ({
         filteredCount={filteredProjects.length}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
+        isAdminAuthenticated={isAdminAuthenticated}
+        publicViewAudience={publicViewAudience}
+        onPublicViewAudienceChange={onPublicViewAudienceChange}
       />
 
       <main className="container mx-auto py-8">

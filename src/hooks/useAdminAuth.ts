@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { verifyPassword, isAuthenticated, setAuthenticated, logout } from '@/lib/auth';
 
 export interface UseAdminAuthReturn {
+  isAdminAuthenticated: boolean;
   isAdminMode: boolean;
   setIsAdminMode: (value: boolean) => void;
   isAuthDialogOpen: boolean;
@@ -17,6 +18,7 @@ export interface UseAdminAuthReturn {
 }
 
 export function useAdminAuth(): UseAdminAuthReturn {
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => isAuthenticated());
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [password, setPassword] = useState('');
@@ -29,6 +31,7 @@ export function useAdminAuth(): UseAdminAuthReturn {
       if (!isAuthenticated()) {
         setIsAuthDialogOpen(true);
       } else {
+        setIsAdminAuthenticated(true);
         setIsAdminMode(true);
       }
       window.history.replaceState({}, '', window.location.pathname);
@@ -40,6 +43,7 @@ export function useAdminAuth(): UseAdminAuthReturn {
         if (!isAuthenticated()) {
           setIsAuthDialogOpen(true);
         } else {
+          setIsAdminAuthenticated(true);
           setIsAdminMode(true);
         }
       }
@@ -61,6 +65,7 @@ export function useAdminAuth(): UseAdminAuthReturn {
 
     if (isValid) {
       setAuthenticated(true);
+      setIsAdminAuthenticated(true);
       setIsAuthDialogOpen(false);
       setIsAdminMode(true);
       setPassword('');
@@ -72,6 +77,7 @@ export function useAdminAuth(): UseAdminAuthReturn {
 
   const handleLogout = useCallback(() => {
     logout();
+    setIsAdminAuthenticated(false);
     setIsAdminMode(false);
   }, []);
 
@@ -82,6 +88,7 @@ export function useAdminAuth(): UseAdminAuthReturn {
   }, []);
 
   return {
+    isAdminAuthenticated,
     isAdminMode,
     setIsAdminMode,
     isAuthDialogOpen,

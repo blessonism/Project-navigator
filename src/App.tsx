@@ -1,12 +1,41 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useProjects } from '@/hooks/useProjects';
 import { AdminView } from '@/components/AdminView';
 import { PublicView } from '@/components/PublicView';
+import { filterProjectsByAudience, getProjectsForAudience, type ProjectAudience } from '@/lib/projectVisibility';
 
 const App: React.FC = () => {
   const auth = useAdminAuth();
   const projectsHook = useProjects();
+  const [publicViewAudience, setPublicViewAudience] = useState<ProjectAudience>('public');
+
+  useEffect(() => {
+    setPublicViewAudience(auth.isAdminAuthenticated ? 'admin' : 'public');
+  }, [auth.isAdminAuthenticated]);
+
+  const effectivePublicViewAudience: ProjectAudience = auth.isAdminAuthenticated
+    ? publicViewAudience
+    : 'public';
+  const visibleProjects = useMemo(
+    () => getProjectsForAudience(projectsHook.projects, effectivePublicViewAudience),
+    [projectsHook.projects, effectivePublicViewAudience]
+  );
+  const filteredVisibleProjects = useMemo(
+    () =>
+      filterProjectsByAudience(
+        projectsHook.projects,
+        effectivePublicViewAudience,
+        projectsHook.searchQuery,
+        projectsHook.selectedCategory
+      ),
+    [
+      projectsHook.projects,
+      effectivePublicViewAudience,
+      projectsHook.searchQuery,
+      projectsHook.selectedCategory,
+    ]
+  );
 
   if (auth.isAdminMode) {
     return (
@@ -63,7 +92,12 @@ const App: React.FC = () => {
         onDeleteProject={projectsHook.handleDeleteProject}
         onConfirmDelete={projectsHook.confirmDelete}
         onReorder={projectsHook.reorderProjects}
-        onBackToPublic={() => auth.setIsAdminMode(false)}
+        onBackToPublic={() => {
+          auth.setIsAdminMode(false);
+          if (auth.isAdminAuthenticated) {
+            setPublicViewAudience('admin');
+          }
+        }}
         onLogout={auth.handleLogout}
       />
     );
@@ -71,14 +105,17 @@ const App: React.FC = () => {
 
   return (
     <PublicView
-      projects={projectsHook.publicProjects}
-      filteredProjects={projectsHook.filteredProjects}
+      projects={visibleProjects}
+      filteredProjects={filteredVisibleProjects}
       isProjectsLoading={projectsHook.isProjectsLoading}
       showImages={projectsHook.showImages}
       searchQuery={projectsHook.searchQuery}
       onSearchChange={projectsHook.setSearchQuery}
       selectedCategory={projectsHook.selectedCategory}
       onCategoryChange={projectsHook.setSelectedCategory}
+      isAdminAuthenticated={auth.isAdminAuthenticated}
+      publicViewAudience={effectivePublicViewAudience}
+      onPublicViewAudienceChange={setPublicViewAudience}
       getStatusColor={projectsHook.getStatusColor}
       selectedProject={projectsHook.selectedProject}
       isDetailDialogOpen={projectsHook.isDetailDialogOpen}

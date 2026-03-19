@@ -1,5 +1,7 @@
 import type { Project, ProjectVisibility } from '@/types/project';
 
+export type ProjectAudience = 'public' | 'admin';
+
 export const resolveProjectVisibility = (value: unknown): ProjectVisibility => {
   return value === 'admin-only' ? 'admin-only' : 'public';
 };
@@ -12,14 +14,30 @@ export const getPublicProjects = (projects: Project[]): Project[] => {
   return projects.filter((project) => resolveProjectVisibility(project.visibility) === 'public');
 };
 
+export const getProjectsForAudience = (
+  projects: Project[],
+  audience: ProjectAudience
+): Project[] => {
+  return audience === 'admin' ? projects : getPublicProjects(projects);
+};
+
 export const filterPublicProjects = (
   projects: Project[],
   searchQuery: string,
   selectedCategory: string
 ): Project[] => {
+  return filterProjectsByAudience(projects, 'public', searchQuery, selectedCategory);
+};
+
+export const filterProjectsByAudience = (
+  projects: Project[],
+  audience: ProjectAudience,
+  searchQuery: string,
+  selectedCategory: string
+): Project[] => {
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
-  return getPublicProjects(projects).filter((project) => {
+  return getProjectsForAudience(projects, audience).filter((project) => {
     const matchesSearch =
       normalizedQuery === '' ||
       project.title.toLowerCase().includes(normalizedQuery) ||
